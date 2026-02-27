@@ -1,0 +1,35 @@
+{
+  "variant": "WITH_SMOTE",
+  "use_smote": true,
+  "dataset_rows_after_cleaning": 917,
+  "target_definition": "1 = cardiovascular disease, 0 = no cardiovascular disease",
+  "train_rows_before_sampling": 733,
+  "train_rows_after_sampling": 810,
+  "test_rows": 184,
+  "sampling": {
+    "applied": true,
+    "minority_label": 0,
+    "before_counts": {
+      "0": 328,
+      "1": 405
+    },
+    "after_counts": {
+      "0": 405,
+      "1": 405
+    },
+    "generated_samples": 77,
+    "k_neighbors_used": 5
+  },
+  "metrics": {
+    "accuracy": 0.8641304347826086,
+    "precision": 0.8811881188118812,
+    "recall": 0.8725490196078431,
+    "f1": 0.8768472906403941,
+    "roc_auc": 0.9219273075083693,
+    "pr_auc": 0.9271252969684036,
+    "tn": 70,
+    "fp": 12,
+    "fn": 13,
+    "tp": 89
+  }
+}

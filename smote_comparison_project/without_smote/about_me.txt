@@ -1,0 +1,72 @@
+WITHOUT_SMOTE VERSION - ABOUT THIS EXPERIMENT
+
+Owner:
+- This folder contains the baseline (no SMOTE) variant of the cardiovascular disease prediction pipeline.
+
+Problem being solved:
+- Target column `target` is binary:
+  - `1` = cardiovascular disease present
+  - `0` = cardiovascular disease absent
+- This version preserves original class distribution in training data and serves as the control baseline.
+
+Main scripts and what each does:
+
+1) run_without_smote.py
+- Entry-point for this specific variant.
+- Resolves the project root path, imports the shared pipeline function, and runs:
+  - `run_variant(raw_file=..., use_smote=False, output_json=..., variant_name="WITHOUT_SMOTE")`
+- Writes this variant's results to:
+  - `without_smote/results_without_smote.json`
+
+2) ../shared_utils.py (shared by both variants)
+- Contains all core ML logic.
+- `load_and_clean_data(...)`
+  - Reads CSV, removes duplicates, normalizes column names, and filters invalid `st_slope == 0` rows.
+- `build_preprocessor(...)`
+  - Defines a leakage-safe preprocessing pipeline:
+    - `StandardScaler` for numeric features
+    - `OneHotEncoder(drop="first")` for categorical features
+- `transform_with_preprocessor(...)`
+  - Fits preprocessing on training data only and transforms train/test consistently.
+- `smote_resample_binary(...)`
+  - Present in shared module but not applied in this variant because `use_smote=False`.
+- `build_model(...)`
+  - Creates XGBoost classifier (`XGBClassifier`) with fixed random state.
+- `compute_metrics(...)`
+  - Calculates: Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion-matrix values (TN/FP/FN/TP).
+- `run_variant(...)`
+  - Full end-to-end flow:
+    - clean -> split -> preprocess -> no resampling -> train -> evaluate -> save JSON output
+
+3) ../compare_smote_vs_no_smote.py (cross-variant comparison)
+- Runs both variants (with and without SMOTE) using identical split/model settings.
+- Produces:
+  - terminal comparison table
+  - markdown report `SMOTE_COMPARISON_REPORT.md`
+
+Core techniques used in this non-SMOTE baseline:
+
+1) Data cleaning and canonicalization
+- Duplicate removal and column normalization reduce data-quality noise.
+
+2) Leakage-safe preprocessing
+- Train/test split happens before scaler/encoder fitting.
+- Test data is never used to fit transformations.
+
+3) No class-resampling baseline
+- Model is trained on original class ratios.
+- This is important because it shows how the model performs without synthetic data generation.
+- Acts as the reference point for measuring any benefit or harm from SMOTE.
+
+4) Gradient-boosted tree model (XGBoost)
+- Strong tabular-data baseline.
+- Captures nonlinear interactions and feature combinations well.
+
+5) Multi-metric evaluation
+- Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion matrix are tracked.
+- Helps identify whether class imbalance impacts disease detection quality.
+
+Important outputs for this version:
+- `results_without_smote.json` (all metrics, train/test stats, class counts)
+- Included in `SMOTE_COMPARISON_REPORT.md` when comparison script is run.
+

@@ -1,0 +1,79 @@
+WITH_SMOTE VERSION - ABOUT THIS EXPERIMENT
+
+Owner:
+- This folder contains the SMOTE-enabled variant of the cardiovascular disease prediction pipeline.
+
+Problem being solved:
+- Target column `target` is binary:
+  - `1` = cardiovascular disease present
+  - `0` = cardiovascular disease absent
+- The goal is to train a model and evaluate whether balancing classes with SMOTE helps predictive performance.
+
+Main scripts and what each does:
+
+1) run_with_smote.py
+- Entry-point for this specific variant.
+- Resolves the project root path, imports the shared pipeline function, and runs:
+  - `run_variant(raw_file=..., use_smote=True, output_json=..., variant_name="WITH_SMOTE")`
+- Writes this variant's results to:
+  - `with_smote/results_with_smote.json`
+
+2) ../shared_utils.py (shared by both variants)
+- Contains all core ML logic.
+- `load_and_clean_data(...)`
+  - Reads CSV, removes duplicates, normalizes column names, and filters invalid `st_slope == 0` rows.
+- `build_preprocessor(...)`
+  - Defines a leakage-safe preprocessing pipeline:
+    - `StandardScaler` for numeric features
+    - `OneHotEncoder(drop="first")` for categorical features
+- `transform_with_preprocessor(...)`
+  - Fits preprocessing on training data only and transforms train/test consistently.
+- `smote_resample_binary(...)`
+  - Custom SMOTE implementation:
+    - Finds minority class in training set
+    - Uses k-nearest neighbors among minority samples
+    - Generates synthetic points by interpolation:
+      - `x_new = x_i + gap * (x_neighbor - x_i)`
+    - Balances minority up to majority count
+  - Returns balanced `X/y` plus sampling metadata.
+- `build_model(...)`
+  - Creates XGBoost classifier (`XGBClassifier`) with fixed random state.
+- `compute_metrics(...)`
+  - Calculates: Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion-matrix values (TN/FP/FN/TP).
+- `run_variant(...)`
+  - Full end-to-end flow:
+    - clean -> split -> preprocess -> optional sampling -> train -> evaluate -> save JSON output
+
+3) ../compare_smote_vs_no_smote.py (cross-variant comparison)
+- Runs both variants (with and without SMOTE) using identical split/model settings.
+- Produces:
+  - terminal comparison table
+  - markdown report `SMOTE_COMPARISON_REPORT.md`
+
+Core techniques used in this SMOTE variant:
+
+1) Data cleaning and canonicalization
+- Duplicate removal and column normalization reduce data-quality noise.
+
+2) Leakage-safe preprocessing
+- Train/test split happens before scaler/encoder fitting.
+- Test data is never used to fit transformations.
+
+3) Class imbalance handling via SMOTE
+- Training-only oversampling prevents contamination of test metrics.
+- Synthetic minority samples are generated in feature space using nearest-neighbor interpolation.
+- Objective: reduce bias toward the majority class and improve minority detection.
+
+4) Gradient-boosted tree model (XGBoost)
+- Strong tabular-data baseline.
+- Handles nonlinear feature interactions effectively.
+
+5) Multi-metric evaluation
+- Accuracy alone can hide class-level behavior.
+- Recall/F1/PR-AUC are included to better assess disease-detection performance.
+- Confusion matrix makes error tradeoffs explicit.
+
+Important outputs for this version:
+- `results_with_smote.json` (all metrics, sampling stats, class counts)
+- Included in `SMOTE_COMPARISON_REPORT.md` when comparison script is run.
+
