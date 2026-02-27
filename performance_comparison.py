@@ -10,7 +10,7 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, ParameterGrid, StratifiedKFold, train_test_split
 
 from dataGeneration import augment_processed_data
 from preprocess import (
@@ -27,17 +27,90 @@ TEST_SIZE = 0.2
 RANDOM_STATE = 42
 TARGET_TRAIN_SIZE = 100000
 AGE_GROUPS = ["Young", "Middle", "Elderly"]
+GRIDSEARCH_SCORING = "f1"
+MAX_GRIDSEARCH_FOLDS = 5
+GRIDSEARCH_PARAM_GRID = {
+    "n_estimators": [80, 140],
+    "max_depth": [3, 5],
+    "learning_rate": [0.05, 0.15],
+    "subsample": [0.8, 1.0],
+}
 
 
-def build_model():
+def build_default_model():
     return xgb.XGBClassifier(
         n_estimators=120,
         max_depth=4,
         learning_rate=0.1,
+        subsample=1.0,
         random_state=RANDOM_STATE,
         eval_metric="logloss",
-        n_jobs=-1,
+        n_jobs=1,
     )
+
+
+def tune_xgboost_with_gridsearch(X_train, y_train, label):
+    y_work = y_train.astype(int).reset_index(drop=True)
+    counts = y_work.value_counts()
+    min_class_count = int(counts.min()) if counts.size > 0 else 0
+    param_grid_size = len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID)))
+
+    if counts.size < 2 or min_class_count < 2:
+        model = build_default_model()
+        model.fit(X_train, y_work)
+        fallback_params = {
+            "n_estimators": int(model.get_params()["n_estimators"]),
+            "max_depth": int(model.get_params()["max_depth"]),
+            "learning_rate": float(model.get_params()["learning_rate"]),
+            "subsample": float(model.get_params()["subsample"]),
+        }
+        print(
+            f"   -> {label}: fallback to default params {fallback_params} "
+            f"(insufficient class diversity for CV)"
+        )
+        return model, {
+            "status": "fallback_default_model",
+            "reason": "insufficient_class_diversity_for_cv",
+            "cv_folds": 0,
+            "param_grid_size": param_grid_size,
+            "best_params": fallback_params,
+            "best_cv_score_f1": None,
+        }
+
+    cv_folds = min(MAX_GRIDSEARCH_FOLDS, min_class_count)
+    cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=RANDOM_STATE)
+
+    search = GridSearchCV(
+        estimator=build_default_model(),
+        param_grid=GRIDSEARCH_PARAM_GRID,
+        scoring=GRIDSEARCH_SCORING,
+        cv=cv,
+        n_jobs=-1,
+        refit=True,
+        verbose=0,
+    )
+    search.fit(X_train, y_work)
+
+    best_params = {
+        "n_estimators": int(search.best_params_["n_estimators"]),
+        "max_depth": int(search.best_params_["max_depth"]),
+        "learning_rate": float(search.best_params_["learning_rate"]),
+        "subsample": float(search.best_params_["subsample"]),
+    }
+
+    print(
+        f"   -> {label}: best params {best_params} "
+        f"(CV f1={search.best_score_:.4f}, folds={cv_folds}, grid={param_grid_size})"
+    )
+
+    return search.best_estimator_, {
+        "status": "tuned",
+        "reason": None,
+        "cv_folds": int(cv_folds),
+        "param_grid_size": param_grid_size,
+        "best_params": best_params,
+        "best_cv_score_f1": float(search.best_score_),
+    }
 
 
 def get_age_cutoffs_from_preprocessor(preprocessor, low_age=45, high_age=65):
@@ -87,6 +160,12 @@ def compute_metrics(y_true, y_pred, y_prob):
 
 
 def fmt(x):
+    return "N/A" if pd.isna(x) else f"{x:.4f}"
+
+
+def fmt_cv(x):
+    if x is None:
+        return "N/A"
     return "N/A" if pd.isna(x) else f"{x:.4f}"
 
 
@@ -147,9 +226,12 @@ def compare_strategies():
     y_test = test_df[TARGET_COL].astype(int)
 
     # 4) Baseline model.
-    print("1) Training BASELINE model...")
-    baseline_model = build_model()
-    baseline_model.fit(train_aug[feature_cols], train_aug[TARGET_COL].astype(int))
+    print("1) TUNING + TRAINING BASELINE model...")
+    baseline_model, baseline_tuning = tune_xgboost_with_gridsearch(
+        train_aug[feature_cols],
+        train_aug[TARGET_COL],
+        "Baseline",
+    )
     baseline_pred = pd.Series(
         baseline_model.predict(X_test).astype(int),
         index=test_df.index,
@@ -170,10 +252,11 @@ def compare_strategies():
         )
 
     # 5) Stratified specialist models.
-    print("2) Training STRATIFIED specialists...")
+    print("2) TUNING + TRAINING STRATIFIED specialists...")
     strat_pred = pd.Series(index=test_df.index, dtype=float)
     strat_prob = pd.Series(index=test_df.index, dtype=float)
     strat_group_metrics = {}
+    strat_tuning = {}
 
     for grp in AGE_GROUPS:
         train_grp = train_aug[train_aug["age_group"] == grp]
@@ -192,10 +275,21 @@ def compare_strategies():
                 "fn": 0,
                 "tp": 0,
             }
+            strat_tuning[grp] = {
+                "status": "skipped",
+                "reason": "insufficient_train_test_class_coverage",
+                "cv_folds": 0,
+                "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+                "best_params": None,
+                "best_cv_score_f1": None,
+            }
             continue
 
-        specialist = build_model()
-        specialist.fit(train_grp[feature_cols], train_grp[TARGET_COL].astype(int))
+        specialist, tuning = tune_xgboost_with_gridsearch(
+            train_grp[feature_cols],
+            train_grp[TARGET_COL],
+            grp,
+        )
         grp_pred = specialist.predict(test_grp[feature_cols]).astype(int)
         grp_prob = specialist.predict_proba(test_grp[feature_cols])[:, 1]
 
@@ -206,6 +300,7 @@ def compare_strategies():
             grp_pred,
             grp_prob,
         )
+        strat_tuning[grp] = tuning
         print(f"   -> {grp}: Accuracy {strat_group_metrics[grp]['accuracy']:.4f}")
 
     # Fallback if any rows were not scored by specialists.
@@ -256,7 +351,19 @@ def compare_strategies():
             f"{fmt(strat_group_metrics[grp]['accuracy']):<10}"
         )
 
+    print("\nTUNING SUMMARY")
+    print("-" * 70)
+    print(
+        f"Baseline best params: {baseline_tuning['best_params']} "
+        f"| best CV f1: {fmt_cv(baseline_tuning['best_cv_score_f1'])}"
+    )
+    for grp in AGE_GROUPS:
+        tuning = strat_tuning.get(grp, {})
+        print(
+            f"{grp:<10} params: {tuning.get('best_params')} "
+            f"| best CV f1: {fmt_cv(tuning.get('best_cv_score_f1'))}"
+        )
+
 
 if __name__ == "__main__":
     compare_strategies()
-    

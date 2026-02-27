@@ -1,0 +1,99 @@
+﻿INITIAL PROJECT - ABOUT THIS EXPERIMENT
+
+Owner:
+- This folder contains the original end-to-end cardiovascular disease pipeline before the SMOTE comparison split into subprojects.
+
+Problem being solved:
+- Binary target `target`:
+  - `1` = cardiovascular disease present
+  - `0` = cardiovascular disease absent
+- The pipeline evaluates whether age-stratified specialist models can outperform a single baseline model while keeping preprocessing leakage-safe.
+
+Main scripts and what each does:
+
+1) preprocess.py
+- Loads and cleans the raw dataset.
+- Drops duplicates, normalizes column names, and removes invalid `st_slope == 0` rows.
+- Builds preprocessing pipeline:
+  - numeric scaling (StandardScaler)
+  - categorical encoding (OneHotEncoder)
+- Saves:
+  - `processed_heart_data_full.csv`
+  - `processed_train.csv`
+  - `processed_test.csv`
+
+2) dataGeneration.py
+- Augments `processed_train.csv` to a fixed training size (`100000` rows).
+- Uses stratified synthetic sample generation across `(target, age_group)`.
+- Keeps one-hot feature groups coherent while generating rows.
+- Saves:
+  - `processed_train_100k_stratified.csv`
+
+3) data_split.py
+- Converts raw age cutoffs (45 and 65) into z-score cutoffs.
+- Splits the augmented dataset into cohort files:
+  - `heart_data_young.csv`
+  - `heart_data_middle.csv`
+  - `heart_data_elderly.csv`
+
+4) performance_comparison.py
+- Runs leakage-safe comparison between:
+  - baseline single XGBoost model
+  - age-stratified specialist XGBoost models
+- Split is done before preprocessing; preprocessor is fit only on train data.
+- Augmentation is applied only to train data.
+- Reports overall and per-group metrics:
+  - Accuracy, ROC-AUC, PR-AUC, Recall, F1
+  - confusion matrix components (TN/FP/FN/TP)
+
+5) gradient_boost_SHAP.py
+- Trains per-cohort XGBoost models using split cohort files.
+- Computes SHAP values and saves explainability plots:
+  - `shap_summary_*.png`
+  - `shap_importance_*.png`
+
+6) vis.py and correlation.py
+- `vis.py` visualizes target distribution across age cohorts and saves:
+  - `age_group_distribution.png`
+- `correlation.py` displays a numerical-feature correlation heatmap.
+
+Techniques used in this initial project:
+
+1) Leakage-safe preprocessing
+- Train/test split happens before fitting scalers/encoders.
+- Test data is transformed using train-fitted preprocessors only.
+
+2) Age-aware cohort design
+- Uses 45 and 65 year boundaries translated into standardized age space.
+- Supports cohort-specific evaluation and explainability.
+
+3) Training-only augmentation
+- Synthetic expansion is applied to training data only.
+- Test split is left untouched for fair evaluation.
+
+4) Baseline vs specialist model comparison
+- Compares one global model against three age specialists.
+- Measures if cohort specialization improves predictive performance.
+
+5) Explainability and diagnostics
+- SHAP plots show feature direction and feature importance per cohort.
+- Additional plots support distribution and correlation analysis.
+
+Important outputs in this folder:
+- `processed_heart_data_full.csv`
+- `processed_train.csv`
+- `processed_test.csv`
+- `processed_train_100k_stratified.csv`
+- `heart_data_young.csv`
+- `heart_data_middle.csv`
+- `heart_data_elderly.csv`
+- `shap_summary_Young.png`
+- `shap_summary_Middle-Aged.png`
+- `shap_summary_Elderly.png`
+- `shap_importance_Young.png`
+- `shap_importance_Middle-Aged.png`
+- `shap_importance_Elderly.png`
+- `age_group_distribution.png`
+
+Run order reference:
+- See `RUN_ORDER.md` for step-by-step execution order.
