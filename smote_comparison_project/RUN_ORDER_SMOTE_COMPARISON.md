@@ -21,11 +21,16 @@ py compare_smote_vs_no_smote.py
 This command will:
 - Train and evaluate the `without_smote` variant
 - Train and evaluate the `with_smote` variant
+- Train separate models for `Young`, `Middle`, and `Elderly` cohorts
+- Run `GridSearchCV` hyperparameter tuning independently per cohort
 - Save per-variant JSON outputs:
   - `without_smote\results_without_smote.json`
   - `with_smote\results_with_smote.json`
 - Save the markdown comparison report:
   - `SMOTE_COMPARISON_REPORT.md`
+
+Note:
+- Runtime is longer than fixed-parameter training because each cohort performs cross-validated grid search.
 
 ## 4) (Optional) Run each variant independently
 

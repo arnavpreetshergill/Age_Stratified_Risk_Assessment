@@ -17,15 +17,41 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, ParameterGrid, StratifiedKFold, train_test_split
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 TARGET_COL = "target"
+AGE_COL = "age"
 NUMERIC_FEATURES = ["age", "resting_bp_s", "cholesterol", "max_heart_rate", "oldpeak"]
 CATEGORICAL_FEATURES = ["chest_pain_type", "resting_ecg", "st_slope"]
+AGE_GROUPS = ["Young", "Middle", "Elderly"]
+COHORT_RULES = {
+    "Young": "age < 45",
+    "Middle": "45 <= age <= 65",
+    "Elderly": "age > 65",
+}
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
+GRIDSEARCH_SCORING = "f1"
+GRIDSEARCH_PARAM_GRID = {
+    "n_estimators": [80, 140],
+    "max_depth": [3, 5],
+    "learning_rate": [0.05, 0.15],
+    "subsample": [0.8, 1.0],
+}
+
+
+def get_age_group(age_value: float) -> str:
+    if age_value < 45:
+        return "Young"
+    if age_value <= 65:
+        return "Middle"
+    return "Elderly"
+
+
+def assign_age_groups(age_series: pd.Series) -> pd.Series:
+    return age_series.apply(get_age_group)
 
 
 def load_and_clean_data(input_file: Path) -> pd.DataFrame:
@@ -64,14 +90,14 @@ def transform_with_preprocessor(
     return out_df
 
 
-def build_model() -> xgb.XGBClassifier:
+def build_default_model() -> xgb.XGBClassifier:
     return xgb.XGBClassifier(
         n_estimators=120,
         max_depth=4,
         learning_rate=0.1,
         random_state=RANDOM_STATE,
         eval_metric="logloss",
-        n_jobs=-1,
+        n_jobs=1,
     )
 
 
@@ -184,6 +210,58 @@ def smote_resample_binary(
     }
 
 
+def tune_xgboost_with_gridsearch(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+) -> Tuple[xgb.XGBClassifier, Dict[str, Any]]:
+    y_work = y_train.astype(int).reset_index(drop=True)
+    counts = y_work.value_counts()
+    min_class_count = int(counts.min()) if counts.size > 0 else 0
+
+    if counts.size < 2 or min_class_count < 2:
+        model = build_default_model()
+        model.fit(X_train, y_work)
+        return model, {
+            "method": "GridSearchCV",
+            "status": "fallback_default_model",
+            "reason": "insufficient_class_diversity_for_cv",
+            "cv_folds": 0,
+            "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+            "best_params": {
+                "n_estimators": int(model.get_params()["n_estimators"]),
+                "max_depth": int(model.get_params()["max_depth"]),
+                "learning_rate": float(model.get_params()["learning_rate"]),
+                "subsample": float(model.get_params()["subsample"]),
+            },
+            "best_cv_score_f1": None,
+        }
+
+    cv_folds = min(5, min_class_count)
+    cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=RANDOM_STATE)
+
+    search = GridSearchCV(
+        estimator=build_default_model(),
+        param_grid=GRIDSEARCH_PARAM_GRID,
+        scoring=GRIDSEARCH_SCORING,
+        cv=cv,
+        n_jobs=-1,
+        refit=True,
+        verbose=0,
+    )
+    search.fit(X_train, y_work)
+
+    best_model = search.best_estimator_
+    return best_model, {
+        "method": "GridSearchCV",
+        "status": "tuned",
+        "scoring": GRIDSEARCH_SCORING,
+        "cv_folds": int(cv_folds),
+        "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+        "best_params": search.best_params_,
+        "best_cv_score_f1": float(search.best_score_),
+    }
+
+
 def _to_json_ready(value: Any) -> Any:
     if isinstance(value, dict):
         return {str(k): _to_json_ready(v) for k, v in value.items()}
@@ -215,47 +293,192 @@ def run_variant(
         stratify=y_raw,
     )
 
-    preprocessor = build_preprocessor()
-    train_df = transform_with_preprocessor(X_train_raw, y_train_raw, preprocessor, fit=True)
-    test_df = transform_with_preprocessor(X_test_raw, y_test_raw, preprocessor, fit=False)
+    train_age_groups = assign_age_groups(X_train_raw[AGE_COL])
+    test_age_groups = assign_age_groups(X_test_raw[AGE_COL])
 
-    feature_cols = [col for col in train_df.columns if col != TARGET_COL]
-    X_train = train_df[feature_cols]
-    y_train = train_df[TARGET_COL].astype(int)
-    X_test = test_df[feature_cols]
-    y_test = test_df[TARGET_COL].astype(int)
+    overall_before_counts = class_counts(y_train_raw)
+    overall_after_counts = {0: 0, 1: 0}
+    cohort_results: Dict[str, Any] = {}
 
-    if use_smote:
-        X_train_final, y_train_final, sampling_info = smote_resample_binary(X_train, y_train)
-    else:
-        X_train_final = X_train.reset_index(drop=True)
-        y_train_final = y_train.reset_index(drop=True)
-        sampling_info = {
-            "applied": False,
-            "reason": "smote_disabled",
-            "before_counts": class_counts(y_train),
-            "after_counts": class_counts(y_train),
-            "generated_samples": 0,
-            "k_neighbors_used": 0,
+    final_pred = pd.Series(index=y_test_raw.index, dtype=float)
+    final_prob = pd.Series(index=y_test_raw.index, dtype=float)
+
+    for cohort in AGE_GROUPS:
+        train_mask = train_age_groups == cohort
+        test_mask = test_age_groups == cohort
+
+        X_train_cohort_raw = X_train_raw.loc[train_mask]
+        y_train_cohort_raw = y_train_raw.loc[train_mask].astype(int)
+        X_test_cohort_raw = X_test_raw.loc[test_mask]
+        y_test_cohort_raw = y_test_raw.loc[test_mask].astype(int)
+
+        if len(X_test_cohort_raw) == 0:
+            cohort_results[cohort] = {
+                "rule": COHORT_RULES[cohort],
+                "train_rows_before_sampling": int(len(y_train_cohort_raw)),
+                "train_rows_after_sampling": int(len(y_train_cohort_raw)),
+                "test_rows": 0,
+                "sampling": {
+                    "applied": False,
+                    "reason": "empty_test_cohort",
+                    "before_counts": class_counts(y_train_cohort_raw),
+                    "after_counts": class_counts(y_train_cohort_raw),
+                    "generated_samples": 0,
+                    "k_neighbors_used": 0,
+                },
+                "tuning": {
+                    "method": "GridSearchCV",
+                    "status": "skipped",
+                    "reason": "empty_test_cohort",
+                    "cv_folds": 0,
+                    "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+                    "best_params": None,
+                    "best_cv_score_f1": None,
+                },
+                "metrics": None,
+            }
+            continue
+
+        if len(X_train_cohort_raw) == 0 or y_train_cohort_raw.nunique() < 2:
+            base_prob = float(y_train_raw.mean())
+            base_pred = int(base_prob >= 0.5)
+            cohort_pred = np.full(len(X_test_cohort_raw), base_pred, dtype=int)
+            cohort_prob = np.full(len(X_test_cohort_raw), base_prob, dtype=float)
+            sampling_info = {
+                "applied": False,
+                "reason": "insufficient_train_cohort",
+                "before_counts": class_counts(y_train_cohort_raw),
+                "after_counts": class_counts(y_train_cohort_raw),
+                "generated_samples": 0,
+                "k_neighbors_used": 0,
+            }
+            tuning_info = {
+                "method": "GridSearchCV",
+                "status": "skipped",
+                "reason": "insufficient_train_cohort",
+                "cv_folds": 0,
+                "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+                "best_params": None,
+                "best_cv_score_f1": None,
+            }
+            metrics = compute_metrics(y_test_cohort_raw, cohort_pred, cohort_prob)
+            final_pred.loc[X_test_cohort_raw.index] = cohort_pred
+            final_prob.loc[X_test_cohort_raw.index] = cohort_prob
+
+            for label, count in class_counts(y_train_cohort_raw).items():
+                overall_after_counts[label] = overall_after_counts.get(label, 0) + count
+
+            cohort_results[cohort] = {
+                "rule": COHORT_RULES[cohort],
+                "train_rows_before_sampling": int(len(y_train_cohort_raw)),
+                "train_rows_after_sampling": int(len(y_train_cohort_raw)),
+                "test_rows": int(len(y_test_cohort_raw)),
+                "sampling": sampling_info,
+                "tuning": tuning_info,
+                "metrics": metrics,
+            }
+            continue
+
+        preprocessor = build_preprocessor()
+        train_df = transform_with_preprocessor(
+            X_train_cohort_raw,
+            y_train_cohort_raw,
+            preprocessor,
+            fit=True,
+        )
+        test_df = transform_with_preprocessor(
+            X_test_cohort_raw,
+            y_test_cohort_raw,
+            preprocessor,
+            fit=False,
+        )
+
+        feature_cols = [col for col in train_df.columns if col != TARGET_COL]
+        X_train_cohort = train_df[feature_cols]
+        y_train_cohort = train_df[TARGET_COL].astype(int)
+        X_test_cohort = test_df[feature_cols]
+        y_test_cohort = test_df[TARGET_COL].astype(int)
+
+        if use_smote:
+            X_train_final, y_train_final, sampling_info = smote_resample_binary(
+                X_train_cohort,
+                y_train_cohort,
+                random_state=RANDOM_STATE,
+            )
+        else:
+            X_train_final = X_train_cohort.reset_index(drop=True)
+            y_train_final = y_train_cohort.reset_index(drop=True)
+            sampling_info = {
+                "applied": False,
+                "reason": "smote_disabled",
+                "before_counts": class_counts(y_train_cohort),
+                "after_counts": class_counts(y_train_cohort),
+                "generated_samples": 0,
+                "k_neighbors_used": 0,
+            }
+
+        model, tuning_info = tune_xgboost_with_gridsearch(X_train_final, y_train_final)
+        cohort_pred = model.predict(X_test_cohort).astype(int)
+        cohort_prob = model.predict_proba(X_test_cohort)[:, 1]
+        metrics = compute_metrics(y_test_cohort, cohort_pred, cohort_prob)
+
+        final_pred.loc[X_test_cohort_raw.index] = cohort_pred
+        final_prob.loc[X_test_cohort_raw.index] = cohort_prob
+
+        for label, count in class_counts(y_train_final).items():
+            overall_after_counts[label] = overall_after_counts.get(label, 0) + count
+
+        cohort_results[cohort] = {
+            "rule": COHORT_RULES[cohort],
+            "train_rows_before_sampling": int(len(y_train_cohort)),
+            "train_rows_after_sampling": int(len(y_train_final)),
+            "test_rows": int(len(y_test_cohort_raw)),
+            "sampling": sampling_info,
+            "tuning": tuning_info,
+            "metrics": metrics,
         }
 
-    model = build_model()
-    model.fit(X_train_final, y_train_final)
+    missing_idx = final_pred[final_pred.isna()].index
+    missing_prediction_fallback = None
+    if len(missing_idx) > 0:
+        fallback_prob = float(y_train_raw.mean())
+        fallback_pred = int(fallback_prob >= 0.5)
+        final_pred.loc[missing_idx] = fallback_pred
+        final_prob.loc[missing_idx] = fallback_prob
+        missing_prediction_fallback = {
+            "rows_filled": int(len(missing_idx)),
+            "fallback_prob": fallback_prob,
+            "fallback_pred": fallback_pred,
+        }
 
-    y_pred = model.predict(X_test).astype(int)
-    y_prob = model.predict_proba(X_test)[:, 1]
-    metrics = compute_metrics(y_test, y_pred, y_prob)
+    ordered_idx = y_test_raw.index
+    overall_metrics = compute_metrics(
+        y_test_raw.loc[ordered_idx],
+        final_pred.loc[ordered_idx].astype(int),
+        final_prob.loc[ordered_idx].astype(float),
+    )
 
     results: Dict[str, Any] = {
         "variant": variant_name,
         "use_smote": bool(use_smote),
         "dataset_rows_after_cleaning": int(len(df_clean)),
         "target_definition": "1 = cardiovascular disease, 0 = no cardiovascular disease",
-        "train_rows_before_sampling": int(len(y_train)),
-        "train_rows_after_sampling": int(len(y_train_final)),
-        "test_rows": int(len(y_test)),
-        "sampling": sampling_info,
-        "metrics": metrics,
+        "cohort_definition": COHORT_RULES,
+        "grid_search": {
+            "enabled": True,
+            "method": "GridSearchCV",
+            "scoring": GRIDSEARCH_SCORING,
+            "param_grid": GRIDSEARCH_PARAM_GRID,
+            "param_grid_size": len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID))),
+        },
+        "train_rows_before_sampling": int(len(y_train_raw)),
+        "train_rows_after_sampling": int(sum(overall_after_counts.values())),
+        "test_rows": int(len(y_test_raw)),
+        "train_class_counts_before_sampling_overall": overall_before_counts,
+        "train_class_counts_after_sampling_overall": overall_after_counts,
+        "cohorts": cohort_results,
+        "overall_metrics": overall_metrics,
+        "missing_prediction_fallback": missing_prediction_fallback,
     }
 
     if output_json is not None:
@@ -265,14 +488,35 @@ def run_variant(
             encoding="utf-8",
         )
 
-    print(f"[{variant_name}] Train before sampling: {class_counts(y_train)}")
-    print(f"[{variant_name}] Train after sampling:  {class_counts(y_train_final)}")
-    roc_auc_text = "N/A" if metrics["roc_auc"] is None else f"{metrics['roc_auc']:.4f}"
+    print(f"[{variant_name}] Train before sampling (overall): {overall_before_counts}")
+    print(f"[{variant_name}] Train after sampling (overall):  {overall_after_counts}")
+    for cohort in AGE_GROUPS:
+        cohort_data = cohort_results.get(cohort, {})
+        cohort_metrics = cohort_data.get("metrics")
+        tuning = cohort_data.get("tuning", {})
+        if cohort_metrics is None:
+            print(f"[{variant_name}] {cohort}: metrics unavailable")
+            continue
+        best_params = tuning.get("best_params")
+        roc_auc_text = "N/A" if cohort_metrics["roc_auc"] is None else f"{cohort_metrics['roc_auc']:.4f}"
+        print(
+            f"[{variant_name}] {cohort}: "
+            f"Acc={cohort_metrics['accuracy']:.4f}, "
+            f"Recall={cohort_metrics['recall']:.4f}, "
+            f"F1={cohort_metrics['f1']:.4f}, "
+            f"ROC-AUC={roc_auc_text}, "
+            f"BestParams={best_params}"
+        )
+
+    overall_roc_auc_text = (
+        "N/A" if overall_metrics["roc_auc"] is None else f"{overall_metrics['roc_auc']:.4f}"
+    )
     print(
-        f"[{variant_name}] Accuracy={metrics['accuracy']:.4f}, "
-        f"Recall={metrics['recall']:.4f}, "
-        f"F1={metrics['f1']:.4f}, "
-        f"ROC-AUC={roc_auc_text}"
+        f"[{variant_name}] OVERALL: "
+        f"Accuracy={overall_metrics['accuracy']:.4f}, "
+        f"Recall={overall_metrics['recall']:.4f}, "
+        f"F1={overall_metrics['f1']:.4f}, "
+        f"ROC-AUC={overall_roc_auc_text}"
     )
 
     return results

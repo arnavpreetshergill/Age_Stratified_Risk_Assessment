@@ -1,79 +1,96 @@
 WITH_SMOTE VERSION - ABOUT THIS EXPERIMENT
 
 Owner:
-- This folder contains the SMOTE-enabled variant of the cardiovascular disease prediction pipeline.
+- This folder contains the SMOTE-enabled cohort-specific variant of the cardiovascular disease prediction pipeline.
 
 Problem being solved:
-- Target column `target` is binary:
+- Binary target `target`:
   - `1` = cardiovascular disease present
   - `0` = cardiovascular disease absent
-- The goal is to train a model and evaluate whether balancing classes with SMOTE helps predictive performance.
+- The workflow now trains separate models for age cohorts because feature patterns can differ by age:
+  - `Young`: age < 45
+  - `Middle`: 45 <= age <= 65
+  - `Elderly`: age > 65
 
 Main scripts and what each does:
 
 1) run_with_smote.py
-- Entry-point for this specific variant.
-- Resolves the project root path, imports the shared pipeline function, and runs:
-  - `run_variant(raw_file=..., use_smote=True, output_json=..., variant_name="WITH_SMOTE")`
-- Writes this variant's results to:
+- Entry-point for this version.
+- Calls shared pipeline with `use_smote=True`.
+- Saves this version's output to:
   - `with_smote/results_with_smote.json`
 
-2) ../shared_utils.py (shared by both variants)
-- Contains all core ML logic.
+2) ../shared_utils.py (shared by both versions)
+- Core pipeline implementation.
 - `load_and_clean_data(...)`
-  - Reads CSV, removes duplicates, normalizes column names, and filters invalid `st_slope == 0` rows.
-- `build_preprocessor(...)`
-  - Defines a leakage-safe preprocessing pipeline:
-    - `StandardScaler` for numeric features
-    - `OneHotEncoder(drop="first")` for categorical features
-- `transform_with_preprocessor(...)`
-  - Fits preprocessing on training data only and transforms train/test consistently.
-- `smote_resample_binary(...)`
-  - Custom SMOTE implementation:
-    - Finds minority class in training set
-    - Uses k-nearest neighbors among minority samples
-    - Generates synthetic points by interpolation:
-      - `x_new = x_i + gap * (x_neighbor - x_i)`
-    - Balances minority up to majority count
-  - Returns balanced `X/y` plus sampling metadata.
-- `build_model(...)`
-  - Creates XGBoost classifier (`XGBClassifier`) with fixed random state.
-- `compute_metrics(...)`
-  - Calculates: Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion-matrix values (TN/FP/FN/TP).
+  - Loads CSV, drops duplicates, normalizes column names, removes invalid `st_slope == 0` rows.
+- `assign_age_groups(...)`
+  - Assigns each row to `Young`, `Middle`, or `Elderly` using raw age.
 - `run_variant(...)`
   - Full end-to-end flow:
-    - clean -> split -> preprocess -> optional sampling -> train -> evaluate -> save JSON output
+    - leakage-safe train/test split
+    - cohort split by age
+    - per-cohort preprocessing (fit on train cohort only)
+    - SMOTE on train cohort only (this version)
+    - per-cohort `GridSearchCV` tuning for XGBoost
+    - per-cohort prediction and metrics
+    - aggregate overall metrics across cohorts
+    - save JSON results
+- `smote_resample_binary(...)`
+  - Custom SMOTE logic:
+    - Detect minority class in a cohort train split
+    - Build minority-neighbor graph
+    - Interpolate synthetic samples
+    - Balance minority count up to majority count
+- `tune_xgboost_with_gridsearch(...)`
+  - Uses `GridSearchCV` with stratified CV for each cohort independently.
+  - Tuned parameters:
+    - `n_estimators`
+    - `max_depth`
+    - `learning_rate`
+    - `subsample`
+  - CV scoring metric: `f1`
+  - This is dynamic and cohort-specific (not fixed globally).
+- `compute_metrics(...)`
+  - Computes Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, TN/FP/FN/TP.
 
-3) ../compare_smote_vs_no_smote.py (cross-variant comparison)
-- Runs both variants (with and without SMOTE) using identical split/model settings.
+3) ../compare_smote_vs_no_smote.py
+- Runs both variants (with and without SMOTE) using the same split and cohort logic.
 - Produces:
-  - terminal comparison table
+  - overall metric comparison
+  - per-cohort metric comparison
+  - best hyperparameter table per cohort
   - markdown report `SMOTE_COMPARISON_REPORT.md`
 
-Core techniques used in this SMOTE variant:
+Techniques used in this SMOTE cohort-tuned version:
 
-1) Data cleaning and canonicalization
-- Duplicate removal and column normalization reduce data-quality noise.
+1) Leakage-safe preprocessing
+- Train/test split occurs before fitting preprocessors.
+- Each cohort has its own preprocessor fitted only on that cohort's training rows.
 
-2) Leakage-safe preprocessing
-- Train/test split happens before scaler/encoder fitting.
-- Test data is never used to fit transformations.
+2) Cohort-specific modeling
+- Separate models for `Young`, `Middle`, and `Elderly`.
+- Avoids forcing one parameter set to fit all age populations.
 
-3) Class imbalance handling via SMOTE
-- Training-only oversampling prevents contamination of test metrics.
-- Synthetic minority samples are generated in feature space using nearest-neighbor interpolation.
-- Objective: reduce bias toward the majority class and improve minority detection.
+3) Class-imbalance handling with SMOTE
+- SMOTE is applied only on training rows inside each cohort.
+- Test set remains untouched.
+- Preserves fair evaluation while balancing minority representation.
 
-4) Gradient-boosted tree model (XGBoost)
-- Strong tabular-data baseline.
-- Handles nonlinear feature interactions effectively.
+4) Hyperparameter optimization with GridSearchCV
+- Per-cohort dynamic tuning finds best tree settings for that cohort.
+- Better than using one fixed XGBoost configuration for all age groups.
 
-5) Multi-metric evaluation
-- Accuracy alone can hide class-level behavior.
-- Recall/F1/PR-AUC are included to better assess disease-detection performance.
-- Confusion matrix makes error tradeoffs explicit.
+5) Multi-level evaluation
+- Metrics reported at two levels:
+  - Cohort-level
+  - Overall combined
+- Includes threshold-dependent metrics and ranking metrics (ROC-AUC, PR-AUC).
 
 Important outputs for this version:
-- `results_with_smote.json` (all metrics, sampling stats, class counts)
-- Included in `SMOTE_COMPARISON_REPORT.md` when comparison script is run.
+- `results_with_smote.json`:
+  - per-cohort sampling stats
+  - per-cohort best GridSearch parameters
+  - per-cohort and overall metrics
+- Used by `SMOTE_COMPARISON_REPORT.md` when comparison script runs.
 

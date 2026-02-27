@@ -1,72 +1,88 @@
 WITHOUT_SMOTE VERSION - ABOUT THIS EXPERIMENT
 
 Owner:
-- This folder contains the baseline (no SMOTE) variant of the cardiovascular disease prediction pipeline.
+- This folder contains the baseline cohort-specific variant without SMOTE.
 
 Problem being solved:
-- Target column `target` is binary:
+- Binary target `target`:
   - `1` = cardiovascular disease present
   - `0` = cardiovascular disease absent
-- This version preserves original class distribution in training data and serves as the control baseline.
+- The workflow trains separate models for age cohorts:
+  - `Young`: age < 45
+  - `Middle`: 45 <= age <= 65
+  - `Elderly`: age > 65
+- This version keeps original class distribution and is the control baseline.
 
 Main scripts and what each does:
 
 1) run_without_smote.py
-- Entry-point for this specific variant.
-- Resolves the project root path, imports the shared pipeline function, and runs:
-  - `run_variant(raw_file=..., use_smote=False, output_json=..., variant_name="WITHOUT_SMOTE")`
-- Writes this variant's results to:
+- Entry-point for this version.
+- Calls shared pipeline with `use_smote=False`.
+- Saves this version's output to:
   - `without_smote/results_without_smote.json`
 
-2) ../shared_utils.py (shared by both variants)
-- Contains all core ML logic.
+2) ../shared_utils.py (shared by both versions)
+- Core pipeline implementation.
 - `load_and_clean_data(...)`
-  - Reads CSV, removes duplicates, normalizes column names, and filters invalid `st_slope == 0` rows.
-- `build_preprocessor(...)`
-  - Defines a leakage-safe preprocessing pipeline:
-    - `StandardScaler` for numeric features
-    - `OneHotEncoder(drop="first")` for categorical features
-- `transform_with_preprocessor(...)`
-  - Fits preprocessing on training data only and transforms train/test consistently.
-- `smote_resample_binary(...)`
-  - Present in shared module but not applied in this variant because `use_smote=False`.
-- `build_model(...)`
-  - Creates XGBoost classifier (`XGBClassifier`) with fixed random state.
-- `compute_metrics(...)`
-  - Calculates: Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion-matrix values (TN/FP/FN/TP).
+  - Loads CSV, drops duplicates, normalizes columns, removes invalid `st_slope == 0`.
+- `assign_age_groups(...)`
+  - Creates `Young`, `Middle`, `Elderly` cohorts using raw age.
 - `run_variant(...)`
-  - Full end-to-end flow:
-    - clean -> split -> preprocess -> no resampling -> train -> evaluate -> save JSON output
+  - Full flow:
+    - leakage-safe train/test split
+    - cohort split by age
+    - per-cohort preprocessing
+    - no SMOTE resampling (baseline)
+    - per-cohort `GridSearchCV` tuning for XGBoost
+    - per-cohort predictions and metrics
+    - aggregate overall metrics
+    - save JSON output
+- `tune_xgboost_with_gridsearch(...)`
+  - Per-cohort dynamic hyperparameter search with stratified CV.
+  - Tuned parameters:
+    - `n_estimators`
+    - `max_depth`
+    - `learning_rate`
+    - `subsample`
+  - CV scoring metric: `f1`
+- `smote_resample_binary(...)`
+  - Implemented in shared module but not used in this baseline variant.
+- `compute_metrics(...)`
+  - Computes Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, TN/FP/FN/TP.
 
-3) ../compare_smote_vs_no_smote.py (cross-variant comparison)
-- Runs both variants (with and without SMOTE) using identical split/model settings.
+3) ../compare_smote_vs_no_smote.py
+- Runs both versions with the same cohort-based pipeline.
 - Produces:
-  - terminal comparison table
+  - overall metric comparison
+  - per-cohort metric comparison
+  - per-cohort best hyperparameters
   - markdown report `SMOTE_COMPARISON_REPORT.md`
 
-Core techniques used in this non-SMOTE baseline:
+Techniques used in this non-SMOTE cohort-tuned baseline:
 
-1) Data cleaning and canonicalization
-- Duplicate removal and column normalization reduce data-quality noise.
+1) Leakage-safe preprocessing
+- Preprocessor fits only on training rows inside each cohort.
+- Test rows never influence scaling/encoding.
 
-2) Leakage-safe preprocessing
-- Train/test split happens before scaler/encoder fitting.
-- Test data is never used to fit transformations.
+2) Cohort-specific modeling
+- Independent model per age cohort.
+- Allows each cohort to have different model complexity and learning dynamics.
 
-3) No class-resampling baseline
-- Model is trained on original class ratios.
-- This is important because it shows how the model performs without synthetic data generation.
-- Acts as the reference point for measuring any benefit or harm from SMOTE.
+3) Dynamic hyperparameter optimization (GridSearchCV)
+- Removes fixed one-size-fits-all XGBoost settings.
+- Finds best params per cohort using cross-validation.
 
-4) Gradient-boosted tree model (XGBoost)
-- Strong tabular-data baseline.
-- Captures nonlinear interactions and feature combinations well.
+4) No synthetic oversampling
+- Class distribution is preserved in training data.
+- Provides a clean reference to evaluate the true impact of SMOTE.
 
-5) Multi-metric evaluation
-- Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC, and confusion matrix are tracked.
-- Helps identify whether class imbalance impacts disease detection quality.
+5) Multi-level evaluation
+- Reports both cohort-level and overall metrics.
+- Includes confusion-matrix components for error analysis.
 
 Important outputs for this version:
-- `results_without_smote.json` (all metrics, train/test stats, class counts)
-- Included in `SMOTE_COMPARISON_REPORT.md` when comparison script is run.
+- `results_without_smote.json`:
+  - per-cohort class distribution and tuning metadata
+  - per-cohort and overall metrics
+- Used by `SMOTE_COMPARISON_REPORT.md` during comparison.
 
