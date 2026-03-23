@@ -1,14 +1,49 @@
 import pandas as pd
 import os
+from sklearn.model_selection import train_test_split
+
+from preprocess import NUMERIC_FEATURES, TARGET_COL, build_preprocessor, load_and_clean_data
+from project_paths import (
+    ELDERLY_COHORT_FILE,
+    MIDDLE_COHORT_FILE,
+    PROCESSED_TRAIN_100K_FILE,
+    RAW_DATA_FILE,
+    YOUNG_COHORT_FILE,
+    ensure_root_artifact_dirs,
+)
 
 # --- CONFIGURATION ---
-PROCESSED_FILE = 'processed_train_100k_stratified.csv'
-RAW_FILE = 'heart_statlog_cleveland_hungary_final(1).csv'
+PROCESSED_FILE = PROCESSED_TRAIN_100K_FILE
+RAW_FILE = RAW_DATA_FILE
 
 # Output filenames
-OUT_YOUNG = 'heart_data_young.csv'
-OUT_MIDDLE = 'heart_data_middle.csv'
-OUT_ELDERLY = 'heart_data_elderly.csv'
+OUT_YOUNG = YOUNG_COHORT_FILE
+OUT_MIDDLE = MIDDLE_COHORT_FILE
+OUT_ELDERLY = ELDERLY_COHORT_FILE
+
+
+def compute_age_z_thresholds(raw_file, test_size=0.2, random_state=42):
+    df_clean = load_and_clean_data(raw_file)
+    X_raw = df_clean.drop(columns=[TARGET_COL])
+    y_raw = df_clean[TARGET_COL].astype(int)
+
+    X_train_raw, _, _, _ = train_test_split(
+        X_raw,
+        y_raw,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=y_raw,
+    )
+
+    preprocessor = build_preprocessor()
+    preprocessor.fit(X_train_raw)
+    scaler = preprocessor.named_transformers_["num"]
+    age_idx = NUMERIC_FEATURES.index("age")
+    raw_mean = float(scaler.mean_[age_idx])
+    raw_std = float(scaler.scale_[age_idx])
+    z_score_45 = (45 - raw_mean) / raw_std
+    z_score_65 = (65 - raw_mean) / raw_std
+    return z_score_45, z_score_65, raw_mean, raw_std
 
 def split_by_age_group():
     # 1. Load the Data
@@ -19,18 +54,12 @@ def split_by_age_group():
 
     print("Loading datasets...")
     df_100k = pd.read_csv(PROCESSED_FILE)
-    df_raw = pd.read_csv(RAW_FILE)
 
     # 2. Calculate Z-Score Thresholds
-    # We need to know what "Age 45" and "Age 65" look like in Z-scores
-    raw_mean = df_raw['age'].mean()
-    raw_std = df_raw['age'].std()
+    z_score_45, z_score_65, raw_mean, raw_std = compute_age_z_thresholds(RAW_FILE)
     
-    z_score_45 = (45 - raw_mean) / raw_std
-    z_score_65 = (65 - raw_mean) / raw_std
-    
-    print(f"Original Age Stats -> Mean: {raw_mean:.2f}, Std: {raw_std:.2f}")
-    print(f"Cutoff Thresholds  -> Age 45 (Z={z_score_45:.3f}), Age 65 (Z={z_score_65:.3f})")
+    print(f"Train-Split Age Stats -> Mean: {raw_mean:.2f}, Std: {raw_std:.2f}")
+    print(f"Cutoff Thresholds     -> Age 45 (Z={z_score_45:.3f}), Age 65 (Z={z_score_65:.3f})")
 
     # 3. Perform the Split
     # Young: Age < 45
@@ -57,4 +86,5 @@ def split_by_age_group():
 
 # --- RUN ---
 if __name__ == "__main__":
+    ensure_root_artifact_dirs()
     split_by_age_group()

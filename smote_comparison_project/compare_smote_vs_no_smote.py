@@ -1,7 +1,16 @@
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from shared_utils import AGE_GROUPS, run_variant
+from project_paths import (
+    REPORT_FILE,
+    RESULTS_WITHOUT_SMOTE_FILE,
+    RESULTS_WITH_SMOTE_FILE,
+    ROOT_PROCESSED_TEST_FILE,
+    ROOT_PROCESSED_TRAIN_FILE,
+    ROOT_RAW_DATA_FILE,
+    ensure_subproject_artifact_dirs,
+)
+from shared_utils import AGE_GROUPS, run_variant_on_generated_data
+from visualization_utils import save_visualizations
 
 OVERALL_METRICS: List[Tuple[str, str]] = [
     ("accuracy", "Accuracy"),
@@ -58,20 +67,35 @@ def params_to_text(params: Any) -> str:
     return ", ".join(text_parts)
 
 
-def main() -> None:
-    root = Path(__file__).resolve().parent
-    data_file = root / "heart_statlog_cleveland_hungary_final(1).csv"
+def features_to_text(feature_selection: Dict[str, Any] | None) -> str:
+    if not isinstance(feature_selection, dict):
+        return "N/A"
+    selected_features = feature_selection.get("selected_features")
+    if not isinstance(selected_features, list) or len(selected_features) == 0:
+        return "N/A"
+    return ", ".join(str(feature_name) for feature_name in selected_features)
 
-    without_smote = run_variant(
-        raw_file=data_file,
+
+def main() -> None:
+    ensure_subproject_artifact_dirs()
+    generated_train_file = ROOT_PROCESSED_TRAIN_FILE
+    processed_test_file = ROOT_PROCESSED_TEST_FILE
+    raw_reference_file = ROOT_RAW_DATA_FILE
+
+    without_smote = run_variant_on_generated_data(
+        processed_train_file=generated_train_file,
+        processed_test_file=processed_test_file,
+        raw_reference_file=raw_reference_file,
         use_smote=False,
-        output_json=root / "without_smote" / "results_without_smote.json",
+        output_json=RESULTS_WITHOUT_SMOTE_FILE,
         variant_name="WITHOUT_SMOTE",
     )
-    with_smote = run_variant(
-        raw_file=data_file,
+    with_smote = run_variant_on_generated_data(
+        processed_train_file=generated_train_file,
+        processed_test_file=processed_test_file,
+        raw_reference_file=raw_reference_file,
         use_smote=True,
-        output_json=root / "with_smote" / "results_with_smote.json",
+        output_json=RESULTS_WITH_SMOTE_FILE,
         variant_name="WITH_SMOTE",
     )
 
@@ -139,10 +163,37 @@ def main() -> None:
         with_params = params_to_text(with_tuning.get("best_params"))
         print(f"{cohort:<8} | {without_params:<40} | {with_params}")
 
+    print("\n" + "=" * 96)
+    print("SELECTED TOP FEATURES BY COHORT")
+    print("=" * 96)
+    print(f"{'Cohort':<8} | {'Without SMOTE Top Features':<60} | {'With SMOTE Top Features'}")
+    print("-" * 96)
+    for cohort in AGE_GROUPS:
+        without_features = features_to_text(
+            without_smote["cohorts"][cohort].get("feature_selection")
+        )
+        with_features = features_to_text(
+            with_smote["cohorts"][cohort].get("feature_selection")
+        )
+        print(f"{cohort:<8} | {without_features:<60} | {with_features}")
+
+    visualization_paths = save_visualizations(without_smote, with_smote)
+
     report_lines = [
         "# SMOTE vs Non-SMOTE Cardiovascular Disease Comparison (Cohort-Tuned GridSearch)",
         "",
         "Target label meaning: `1 = cardiovascular disease`, `0 = no cardiovascular disease`.",
+        "",
+        "## Data sources",
+        "",
+        f"- Training dataset: `{without_smote['dataset_source']['processed_train_file']}`",
+        f"- Evaluation dataset: `{without_smote['dataset_source']['processed_test_file']}`",
+        f"- Raw reference dataset for processed age cutoffs: `{without_smote['dataset_source']['raw_reference_file']}`",
+        (
+            "- Processed age cutoffs used for cohort assignment: "
+            f"Young < {fmt(without_smote['dataset_source']['age_cutoffs_processed']['young_upper_bound_processed'])}, "
+            f"Middle <= {fmt(without_smote['dataset_source']['age_cutoffs_processed']['middle_upper_bound_processed'])}"
+        ),
         "",
         "## Cohort rules",
         "",
@@ -159,6 +210,12 @@ def main() -> None:
         f"- Scoring: {without_smote['grid_search']['scoring']}",
         f"- Param grid: {without_smote['grid_search']['param_grid']}",
         f"- Grid size per cohort: {without_smote['grid_search']['param_grid_size']}",
+        "",
+        "## Feature selection configuration",
+        "",
+        f"- Method: {without_smote['feature_selection']['method']}",
+        f"- Top K: {without_smote['feature_selection']['top_k']}",
+        f"- Stage: {without_smote['feature_selection']['stage']}",
         "",
         "## Overall train class distribution",
         "",
@@ -208,6 +265,23 @@ def main() -> None:
 
     report_lines += [
         "",
+        "## Selected top features by cohort",
+        "",
+        "| Cohort | Without SMOTE | With SMOTE |",
+        "|---|---|---|",
+    ]
+
+    for cohort in AGE_GROUPS:
+        without_features = features_to_text(
+            without_smote["cohorts"][cohort].get("feature_selection")
+        )
+        with_features = features_to_text(
+            with_smote["cohorts"][cohort].get("feature_selection")
+        )
+        report_lines.append(f"| {cohort} | {without_features} | {with_features} |")
+
+    report_lines += [
+        "",
         "## Overall confusion matrices",
         "",
         (
@@ -219,11 +293,22 @@ def main() -> None:
             f"[{smote_cm['tn']} {smote_cm['fp']} {smote_cm['fn']} {smote_cm['tp']}]"
         ),
         "",
+        "## Visualization outputs",
+        "",
     ]
 
-    report_path = root / "SMOTE_COMPARISON_REPORT.md"
+    for visualization_path in visualization_paths:
+        report_lines.append(f"- `{visualization_path.name}`")
+
+    report_lines.append("")
+
+    report_path = REPORT_FILE
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text("\n".join(report_lines), encoding="utf-8")
     print(f"\nSaved report: {report_path}")
+    print("Saved visualizations:")
+    for visualization_path in visualization_paths:
+        print(f"- {visualization_path}")
 
 
 if __name__ == "__main__":

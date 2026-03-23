@@ -1,41 +1,53 @@
-import pandas as pd
-import seaborn as sns
+import os
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
-# 1. Load your dataset
-# Replace 'your_dataset.csv' with the path to your file.
-# For this example, we will load a built-in dataset if a file isn't provided.
-try:
-    df = pd.read_csv('heart_data_elderly.csv')
-    print("User dataset loaded.")
-except FileNotFoundError:
-    print("Example dataset loaded (Iris) for demonstration.")
-    df = sns.load_dataset('iris')
+from project_paths import CORRELATION_HEATMAP_FILE, PROCESSED_TRAIN_FILE, ensure_root_artifact_dirs
 
-# 2. Pre-processing
-# Correlation requires numerical data. We drop non-numeric columns automatically.
-numerical_df = df.select_dtypes(include=['float64', 'int64'])
+DATA_FILE = PROCESSED_TRAIN_FILE
+OUTPUT_FILE = CORRELATION_HEATMAP_FILE
 
-# 3. Calculate the Correlation Matrix
-# method='pearson' is standard. Options: 'kendall', 'spearman'
-corr_matrix = numerical_df.corr()
 
-# 4. Visualization (Heatmap)
-plt.figure(figsize=(10, 8))
+def main():
+    if not os.path.exists(DATA_FILE):
+        print(f"Error: '{DATA_FILE}' not found. Please run preprocess.py first.")
+        return
 
-# Create a mask to hide the upper triangle (optional, but makes it cleaner)
-mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+    df = pd.read_csv(DATA_FILE)
+    print(f"Loaded dataset: {DATA_FILE} ({df.shape[0]} rows, {df.shape[1]} columns)")
 
-sns.heatmap(corr_matrix, 
-            annot=True,         # Write the data value in each cell
-            fmt=".2f",          # Round to 2 decimal places
-            cmap='coolwarm',    # Color map: Red (positive), Blue (negative)
-            vmin=-1, vmax=1,    # Set scale limits
-            center=0,           # Set center of color map to 0
-            square=True,        # Force square cells
-            mask=mask)          # Apply the mask (remove this line to see full matrix)
+    numerical_df = df.select_dtypes(include=["float64", "int64"])
+    if numerical_df.empty:
+        print("Error: no numeric columns available for correlation analysis.")
+        return
 
-plt.title('Correlation Matrix Heatmap')
-plt.tight_layout()
-plt.show()
+    corr_matrix = numerical_df.corr()
+    mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(
+        corr_matrix,
+        annot=True,
+        fmt=".2f",
+        cmap="coolwarm",
+        vmin=-1,
+        vmax=1,
+        center=0,
+        square=True,
+        mask=mask,
+    )
+    plt.title("Correlation Matrix Heatmap")
+    plt.tight_layout()
+    plt.savefig(OUTPUT_FILE, dpi=200, bbox_inches="tight")
+    plt.close()
+    print(f"Saved: {OUTPUT_FILE}")
+
+
+if __name__ == "__main__":
+    ensure_root_artifact_dirs()
+    main()

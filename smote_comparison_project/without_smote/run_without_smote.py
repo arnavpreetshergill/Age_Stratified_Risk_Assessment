@@ -5,15 +5,23 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from shared_utils import run_variant
+from project_paths import (
+    RESULTS_WITHOUT_SMOTE_FILE,
+    ROOT_PROCESSED_TEST_FILE,
+    ROOT_PROCESSED_TRAIN_FILE,
+    ROOT_RAW_DATA_FILE,
+    ensure_subproject_artifact_dirs,
+)
+from shared_utils import run_variant_on_generated_data
 
 
 if __name__ == "__main__":
-    data_file = ROOT / "heart_statlog_cleveland_hungary_final(1).csv"
-    output_file = Path(__file__).resolve().parent / "results_without_smote.json"
-    run_variant(
-        raw_file=data_file,
+    ensure_subproject_artifact_dirs()
+    run_variant_on_generated_data(
+        processed_train_file=ROOT_PROCESSED_TRAIN_FILE,
+        processed_test_file=ROOT_PROCESSED_TEST_FILE,
+        raw_reference_file=ROOT_RAW_DATA_FILE,
         use_smote=False,
-        output_json=output_file,
+        output_json=RESULTS_WITHOUT_SMOTE_FILE,
         variant_name="WITHOUT_SMOTE",
     )

@@ -1,22 +1,46 @@
 import pandas as pd
 import numpy as np
 import os
+from sklearn.model_selection import train_test_split
+
+from preprocess import NUMERIC_FEATURES, TARGET_COL, build_preprocessor, load_and_clean_data
+from project_paths import (
+    PROCESSED_TRAIN_100K_FILE,
+    PROCESSED_TRAIN_FILE,
+    RAW_DATA_FILE,
+    ensure_root_artifact_dirs,
+)
 
 # --- CONFIGURATION ---
-INPUT_FILENAME = 'processed_train.csv'
-OUTPUT_FILENAME = 'processed_train_100k_stratified.csv'
-RAW_REFERENCE_FILENAME = 'heart_statlog_cleveland_hungary_final(1).csv'
+INPUT_FILENAME = PROCESSED_TRAIN_FILE
+OUTPUT_FILENAME = PROCESSED_TRAIN_100K_FILE
+RAW_REFERENCE_FILENAME = RAW_DATA_FILE
 TARGET_TOTAL = 100000
 RANDOM_STATE = 42
 
 
-def compute_age_z_thresholds(raw_file):
-    df_raw = pd.read_csv(raw_file)
-    raw_mean = df_raw['age'].mean()
-    raw_std = df_raw['age'].std()
+def compute_age_z_thresholds(raw_file, test_size=0.2, random_state=42):
+    df_clean = load_and_clean_data(raw_file)
+    X_raw = df_clean.drop(columns=[TARGET_COL])
+    y_raw = df_clean[TARGET_COL].astype(int)
+
+    X_train_raw, _, _, _ = train_test_split(
+        X_raw,
+        y_raw,
+        test_size=test_size,
+        random_state=random_state,
+        stratify=y_raw,
+    )
+
+    preprocessor = build_preprocessor()
+    preprocessor.fit(X_train_raw)
+    scaler = preprocessor.named_transformers_["num"]
+    age_idx = NUMERIC_FEATURES.index("age")
+    raw_mean = float(scaler.mean_[age_idx])
+    raw_std = float(scaler.scale_[age_idx])
     age_z_45 = (45 - raw_mean) / raw_std
     age_z_65 = (65 - raw_mean) / raw_std
-    return age_z_45, age_z_65
+    return age_z_45, age_z_65, raw_mean, raw_std
 
 
 def get_age_group_scaled(z_score, age_z_45, age_z_65):
@@ -153,6 +177,7 @@ def augment_processed_data(df, target_total=100000, age_z_45=-0.932, age_z_65=1.
 
 # --- EXECUTION ---
 if __name__ == "__main__":
+    ensure_root_artifact_dirs()
     if not os.path.exists(INPUT_FILENAME):
         print(f"Error: '{INPUT_FILENAME}' not found. Please run preprocess.py first.")
     elif not os.path.exists(RAW_REFERENCE_FILENAME):
@@ -160,8 +185,14 @@ if __name__ == "__main__":
     else:
         print(f"Loading processed data: {INPUT_FILENAME}")
         df = pd.read_csv(INPUT_FILENAME)
-        age_z_45, age_z_65 = compute_age_z_thresholds(RAW_REFERENCE_FILENAME)
-        print(f"Using age cutoffs (z-space): 45y={age_z_45:.3f}, 65y={age_z_65:.3f}")
+        age_z_45, age_z_65, raw_mean, raw_std = compute_age_z_thresholds(
+            RAW_REFERENCE_FILENAME,
+            random_state=RANDOM_STATE,
+        )
+        print(
+            f"Using train-split age cutoffs (z-space): 45y={age_z_45:.3f}, 65y={age_z_65:.3f} "
+            f"(mean={raw_mean:.3f}, std={raw_std:.3f})"
+        )
 
         df_result = augment_processed_data(
             df,

@@ -3,6 +3,14 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+from project_paths import (
+    PROCESSED_FULL_FILE,
+    PROCESSED_TEST_FILE,
+    PROCESSED_TRAIN_FILE,
+    RAW_DATA_FILE,
+    ensure_root_artifact_dirs,
+)
+
 TARGET_COL = "target"
 NUMERIC_FEATURES = ["age", "resting_bp_s", "cholesterol", "max_heart_rate", "oldpeak"]
 CATEGORICAL_FEATURES = ["chest_pain_type", "resting_ecg", "st_slope"]
@@ -89,12 +97,13 @@ def preprocess_train_test_split(
 
 
 if __name__ == "__main__":
+    ensure_root_artifact_dirs()
     preprocess_full_dataset(
-        "heart_statlog_cleveland_hungary_final(1).csv",
-        "processed_heart_data_full.csv",
+        RAW_DATA_FILE,
+        PROCESSED_FULL_FILE,
     )
     preprocess_train_test_split(
-        "heart_statlog_cleveland_hungary_final(1).csv",
-        "processed_train.csv",
-        "processed_test.csv",
+        RAW_DATA_FILE,
+        PROCESSED_TRAIN_FILE,
+        PROCESSED_TEST_FILE,
     )

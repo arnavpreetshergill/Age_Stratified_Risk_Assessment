@@ -1,17 +1,35 @@
 import os
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import pandas as pd
+import numpy as np
 import shap
-import xgboost as xgb
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import GridSearchCV, ParameterGrid, StratifiedKFold, train_test_split
+from sklearn.model_selection import train_test_split
+
+from preprocess import (
+    NUMERIC_FEATURES,
+    TARGET_COL,
+    build_preprocessor,
+    load_and_clean_data,
+    transform_with_preprocessor,
+)
+from project_paths import RAW_DATA_FILE, SHAP_VISUALIZATIONS_DIR, ensure_root_artifact_dirs
+from training_utils import (
+    FEATURE_SELECTION_TOP_K,
+    select_top_features,
+    smote_resample_binary,
+    tune_xgboost_with_gridsearch,
+)
 
 # --- CONFIGURATION ---
-# List of split files and friendly names
-DATASETS = [
-    {"file": "heart_data_young.csv", "name": "Young Adults (<45)"},
-    {"file": "heart_data_middle.csv", "name": "Middle-Aged (45-65)"},
-    {"file": "heart_data_elderly.csv", "name": "Elderly (>65)"},
+RAW_FILE = RAW_DATA_FILE
+TEST_SIZE = 0.2
+COHORTS = [
+    {"key": "Young", "name": "Young Adults (<45)", "output": "Young"},
+    {"key": "Middle", "name": "Middle-Aged (45-65)", "output": "Middle-Aged"},
+    {"key": "Elderly", "name": "Elderly (>65)", "output": "Elderly"},
 ]
 RANDOM_STATE = 42
 GRIDSEARCH_SCORING = "f1"
@@ -24,139 +42,140 @@ GRIDSEARCH_PARAM_GRID = {
 }
 
 
-def build_default_model():
-    return xgb.XGBClassifier(
-        n_estimators=120,
-        max_depth=4,
-        learning_rate=0.1,
-        subsample=1.0,
-        random_state=RANDOM_STATE,
-        eval_metric="logloss",
-        n_jobs=1,
-    )
+def format_feature_list(feature_info):
+    features = feature_info.get("selected_features", []) if isinstance(feature_info, dict) else []
+    return ", ".join(features) if len(features) > 0 else "N/A"
 
 
-def tune_xgboost_with_gridsearch(X_train, y_train, group_name):
-    y_work = y_train.astype(int).reset_index(drop=True)
-    counts = y_work.value_counts()
-    min_class_count = int(counts.min()) if counts.size > 0 else 0
-    param_grid_size = len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID)))
-
-    if counts.size < 2 or min_class_count < 2:
-        model = build_default_model()
-        model.fit(X_train, y_work)
-        fallback_params = {
-            "n_estimators": int(model.get_params()["n_estimators"]),
-            "max_depth": int(model.get_params()["max_depth"]),
-            "learning_rate": float(model.get_params()["learning_rate"]),
-            "subsample": float(model.get_params()["subsample"]),
-        }
-        print(
-            f"Tuning fallback for {group_name}: {fallback_params} "
-            f"(insufficient class diversity for CV)"
-        )
-        return model
-
-    cv_folds = min(MAX_GRIDSEARCH_FOLDS, min_class_count)
-    cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=RANDOM_STATE)
-
-    search = GridSearchCV(
-        estimator=build_default_model(),
-        param_grid=GRIDSEARCH_PARAM_GRID,
-        scoring=GRIDSEARCH_SCORING,
-        cv=cv,
-        n_jobs=-1,
-        refit=True,
-        verbose=0,
-    )
-    search.fit(X_train, y_work)
-
-    best_params = {
-        "n_estimators": int(search.best_params_["n_estimators"]),
-        "max_depth": int(search.best_params_["max_depth"]),
-        "learning_rate": float(search.best_params_["learning_rate"]),
-        "subsample": float(search.best_params_["subsample"]),
-    }
-
-    print(
-        f"Tuned params for {group_name}: {best_params} "
-        f"(CV f1={search.best_score_:.4f}, folds={cv_folds}, grid={param_grid_size})"
-    )
-    return search.best_estimator_
+def get_age_cutoffs_from_preprocessor(preprocessor, low_age=45, high_age=65):
+    scaler = preprocessor.named_transformers_["num"]
+    age_idx = NUMERIC_FEATURES.index("age")
+    age_mean = float(scaler.mean_[age_idx])
+    age_std = float(scaler.scale_[age_idx])
+    z45 = (low_age - age_mean) / age_std
+    z65 = (high_age - age_mean) / age_std
+    return z45, z65, age_mean, age_std
 
 
-def analyze_group(file_path, group_name):
+def assign_age_group(age_series, z45, z65):
+    conditions = [
+        age_series < z45,
+        (age_series >= z45) & (age_series <= z65),
+        age_series > z65,
+    ]
+    return np.select(conditions, ["Young", "Middle", "Elderly"], default="Unknown")
+
+
+def analyze_group(train_df, test_df, group_name, output_name):
     print("=" * 60)
     print(f"STARTING ANALYSIS: {group_name}")
+    print(f"TOP-{FEATURE_SELECTION_TOP_K} FEATURE SELECTION + TRAIN-ONLY SMOTE")
     print("=" * 60)
+    print(f"Train/Test rows: {len(train_df)} / {len(test_df)}")
 
-    # 1. Load Data
-    if not os.path.exists(file_path):
-        print(f"Error: File '{file_path}' not found. Skipping.")
+    if len(train_df) == 0 or len(test_df) == 0 or train_df[TARGET_COL].nunique() < 2:
+        print(f"Skipping {group_name}: insufficient cohort train/test coverage.")
         return
 
-    df = pd.read_csv(file_path)
-    print(f"Data Loaded: {len(df)} rows")
-    if len(df) < 10 or df["target"].nunique() < 2:
-        print(f"Skipping {group_name}: not enough rows/classes for train/test split.")
-        return
+    X_train = train_df.drop(columns=[TARGET_COL, "age_group"])
+    y_train = train_df[TARGET_COL].astype(int)
+    X_test = test_df.drop(columns=[TARGET_COL, "age_group"])
+    y_test = test_df[TARGET_COL].astype(int)
 
-    # 2. Prepare X and y
-    target_col = "target"
-    X = df.drop(columns=[target_col])
-    y = df[target_col].astype(int)
-
-    # 3. Train/Test Split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
+    X_train_selected, X_test_selected, feature_info = select_top_features(
+        X_train,
+        y_train,
+        X_test,
+        top_k=FEATURE_SELECTION_TOP_K,
         random_state=RANDOM_STATE,
-        stratify=y,
+    )
+    X_train_final, y_train_final, sampling_info = smote_resample_binary(
+        X_train_selected,
+        y_train,
+        random_state=RANDOM_STATE,
+    )
+    print(f"Selected features: {format_feature_list(feature_info)}")
+    print(
+        f"SMOTE class counts: before {sampling_info['before_counts']} "
+        f"after {sampling_info['after_counts']}"
+    )
+    model, _ = tune_xgboost_with_gridsearch(
+        X_train_final,
+        y_train_final,
+        group_name,
+        param_grid=GRIDSEARCH_PARAM_GRID,
+        scoring=GRIDSEARCH_SCORING,
+        max_cv_folds=MAX_GRIDSEARCH_FOLDS,
+        random_state=RANDOM_STATE,
     )
 
-    # 4. Tune + train Gradient Boosting Model (XGBoost)
-    model = tune_xgboost_with_gridsearch(X_train, y_train, group_name)
-
-    # 5. Evaluate Performance
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test_selected)
     acc = accuracy_score(y_test, y_pred)
     print(f"Model Accuracy for {group_name}: {acc:.2%}")
     print("-" * 30)
 
-    # 6. SHAP Analysis
     print(f"Generating SHAP plots for {group_name}...")
+    explainer = shap.Explainer(model, X_test_selected)
+    shap_values = explainer(X_test_selected)
 
-    # Create object that can calculate SHAP values
-    explainer = shap.Explainer(model, X_test)
-    shap_values = explainer(X_test)
-
-    # Plot 1: Summary plot
     plt.figure(figsize=(10, 6))
     plt.title(f"SHAP Summary: {group_name}")
-    shap.summary_plot(shap_values, X_test, show=False)
-
-    safe_name = group_name.split()[0]  # e.g., "Young"
-    plot_filename = f"shap_summary_{safe_name}.png"
+    shap.summary_plot(shap_values, X_test_selected, show=False)
+    plot_filename = SHAP_VISUALIZATIONS_DIR / f"shap_summary_{output_name}.png"
     plt.savefig(plot_filename, bbox_inches="tight")
     plt.close()
     print(f"Saved: {plot_filename}")
 
-    # Plot 2: Bar plot (feature importance)
     plt.figure(figsize=(10, 6))
     plt.title(f"Feature Importance: {group_name}")
     shap.plots.bar(shap_values, show=False)
-
-    bar_filename = f"shap_importance_{safe_name}.png"
+    bar_filename = SHAP_VISUALIZATIONS_DIR / f"shap_importance_{output_name}.png"
     plt.savefig(bar_filename, bbox_inches="tight")
     plt.close()
     print(f"Saved: {bar_filename}")
-    print("\n")
+    print()
 
 
-# --- EXECUTION LOOP ---
 if __name__ == "__main__":
-    for data in DATASETS:
-        analyze_group(data["file"], data["name"])
+    ensure_root_artifact_dirs()
+    if not os.path.exists(RAW_FILE):
+        print(f"Error: '{RAW_FILE}' not found.")
+    else:
+        raw_df = load_and_clean_data(RAW_FILE)
+        X_raw = raw_df.drop(columns=[TARGET_COL])
+        y_raw = raw_df[TARGET_COL].astype(int)
 
-    print("Done! Check your folder for the PNG images.")
+        X_train_raw, X_test_raw, y_train_raw, y_test_raw = train_test_split(
+            X_raw,
+            y_raw,
+            test_size=TEST_SIZE,
+            random_state=RANDOM_STATE,
+            stratify=y_raw,
+        )
+
+        preprocessor = build_preprocessor()
+        train_df = transform_with_preprocessor(X_train_raw, y_train_raw, preprocessor, fit=True)
+        test_df = transform_with_preprocessor(X_test_raw, y_test_raw, preprocessor, fit=False)
+
+        z45, z65, age_mean, age_std = get_age_cutoffs_from_preprocessor(preprocessor)
+        train_df["age_group"] = assign_age_group(train_df["age"], z45, z65)
+        test_df["age_group"] = assign_age_group(test_df["age"], z45, z65)
+
+        print(
+            f"Using clean train/test split from {RAW_FILE}: "
+            f"{len(train_df)} train rows, {len(test_df)} test rows"
+        )
+        print(
+            f"Age thresholds in z-space from train scaler: "
+            f"45y={z45:.3f}, 65y={z65:.3f} (mean={age_mean:.3f}, std={age_std:.3f})"
+        )
+
+        for cohort in COHORTS:
+            analyze_group(
+                train_df[train_df["age_group"] == cohort["key"]].copy(),
+                test_df[test_df["age_group"] == cohort["key"]].copy(),
+                cohort["name"],
+                cohort["output"],
+            )
+
+        print("Done! Check your folder for the PNG images.")

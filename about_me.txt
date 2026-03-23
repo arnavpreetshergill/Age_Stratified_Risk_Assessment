@@ -2,6 +2,7 @@
 
 Owner:
 - This folder contains the original end-to-end cardiovascular disease pipeline before the SMOTE comparison split into subprojects.
+- New generated outputs are written under `datasets/` and `visualizations/` instead of the repo root.
 
 Problem being solved:
 - Binary target `target`:
@@ -18,44 +19,55 @@ Main scripts and what each does:
   - numeric scaling (StandardScaler)
   - categorical encoding (OneHotEncoder)
 - Saves:
-  - `processed_heart_data_full.csv`
-  - `processed_train.csv`
-  - `processed_test.csv`
+  - `datasets/processed/processed_heart_data_full.csv`
+  - `datasets/processed/processed_train.csv`
+  - `datasets/processed/processed_test.csv`
 
 2) dataGeneration.py
 - Augments `processed_train.csv` to a fixed training size (`100000` rows).
 - Uses stratified synthetic sample generation across `(target, age_group)`.
 - Keeps one-hot feature groups coherent while generating rows.
 - Saves:
-  - `processed_train_100k_stratified.csv`
+  - `datasets/processed/processed_train_100k_stratified.csv`
 
 3) data_split.py
-- Converts raw age cutoffs (45 and 65) into z-score cutoffs.
+- Converts age cutoffs (45 and 65) into processed-space cutoffs using the same train-only scaler logic as the main pipeline.
 - Splits the augmented dataset into cohort files:
-  - `heart_data_young.csv`
-  - `heart_data_middle.csv`
-  - `heart_data_elderly.csv`
+  - `datasets/cohorts/heart_data_young.csv`
+  - `datasets/cohorts/heart_data_middle.csv`
+  - `datasets/cohorts/heart_data_elderly.csv`
 
 4) performance_comparison.py
 - Runs leakage-safe comparison between:
   - baseline single XGBoost model
   - age-stratified specialist XGBoost models
 - Split is done before preprocessing; preprocessor is fit only on train data.
-- Augmentation is applied only to train data.
+- Applies top-10 training-only feature selection before model fitting.
+- Applies train-only SMOTE after feature selection.
+- Uses the normal processed train/test split for evaluation.
+- Does not expand the training set to `100000` rows.
 - Reports overall and per-group metrics:
   - Accuracy, ROC-AUC, PR-AUC, Recall, F1
   - confusion matrix components (TN/FP/FN/TP)
+- Saves visualization PNGs in `visualizations/performance/`:
+  - overall metrics
+  - per-cohort metrics
+  - confusion matrices
+  - SMOTE sampling summary
+  - selected-feature importance comparison
 
 5) gradient_boost_SHAP.py
-- Trains per-cohort XGBoost models using split cohort files.
+- Trains per-cohort XGBoost models using the same clean train/test split as `performance_comparison.py`.
+- Applies the same top-10 training-only feature selection and train-only SMOTE flow before fitting.
 - Computes SHAP values and saves explainability plots:
-  - `shap_summary_*.png`
-  - `shap_importance_*.png`
+  - `visualizations/shap/shap_summary_*.png`
+  - `visualizations/shap/shap_importance_*.png`
 
 6) vis.py and correlation.py
 - `vis.py` visualizes target distribution across age cohorts and saves:
-  - `age_group_distribution.png`
-- `correlation.py` displays a numerical-feature correlation heatmap.
+  - `visualizations/exploratory/age_group_distribution.png`
+- `correlation.py` saves a numerical-feature correlation heatmap:
+  - `visualizations/exploratory/correlation_heatmap.png`
 
 Techniques used in this initial project:
 
@@ -64,36 +76,47 @@ Techniques used in this initial project:
 - Test data is transformed using train-fitted preprocessors only.
 
 2) Age-aware cohort design
-- Uses 45 and 65 year boundaries translated into standardized age space.
+- Uses 45 and 65 year boundaries translated into standardized age space with train-only preprocessing statistics.
 - Supports cohort-specific evaluation and explainability.
 
-3) Training-only augmentation
-- Synthetic expansion is applied to training data only.
-- Test split is left untouched for fair evaluation.
+3) Optional training-only augmentation
+- Synthetic expansion is available in the project for separate augmented-data experiments and exported cohort CSVs.
+- It is not used by `performance_comparison.py` or `gradient_boost_SHAP.py`.
 
 4) Baseline vs specialist model comparison
 - Compares one global model against three age specialists.
 - Measures if cohort specialization improves predictive performance.
 
-5) Explainability and diagnostics
+5) Feature reduction and class balancing
+- Keeps the top 10 training-only features before model fitting.
+- Applies SMOTE only on training data after feature selection.
+
+6) Explainability and diagnostics
 - SHAP plots show feature direction and feature importance per cohort.
 - Additional plots support distribution and correlation analysis.
 
 Important outputs in this folder:
-- `processed_heart_data_full.csv`
-- `processed_train.csv`
-- `processed_test.csv`
-- `processed_train_100k_stratified.csv`
-- `heart_data_young.csv`
-- `heart_data_middle.csv`
-- `heart_data_elderly.csv`
-- `shap_summary_Young.png`
-- `shap_summary_Middle-Aged.png`
-- `shap_summary_Elderly.png`
-- `shap_importance_Young.png`
-- `shap_importance_Middle-Aged.png`
-- `shap_importance_Elderly.png`
-- `age_group_distribution.png`
+- `datasets/processed/processed_heart_data_full.csv`
+- `datasets/processed/processed_train.csv`
+- `datasets/processed/processed_test.csv`
+- `datasets/processed/processed_train_100k_stratified.csv`
+- `datasets/cohorts/heart_data_young.csv`
+- `datasets/cohorts/heart_data_middle.csv`
+- `datasets/cohorts/heart_data_elderly.csv`
+- `visualizations/shap/shap_summary_Young.png`
+- `visualizations/shap/shap_summary_Middle-Aged.png`
+- `visualizations/shap/shap_summary_Elderly.png`
+- `visualizations/shap/shap_importance_Young.png`
+- `visualizations/shap/shap_importance_Middle-Aged.png`
+- `visualizations/shap/shap_importance_Elderly.png`
+- `visualizations/exploratory/age_group_distribution.png`
+- `visualizations/exploratory/correlation_heatmap.png`
+- `visualizations/performance/overall_metrics_comparison.png`
+- `visualizations/performance/per_cohort_metrics_comparison.png`
+- `visualizations/performance/confusion_matrix_comparison.png`
+- `visualizations/performance/sampling_comparison.png`
+- `visualizations/performance/feature_selection_comparison.png`
 
 Run order reference:
 - See `RUN_ORDER.md` for step-by-step execution order.
+- Use `run_all.py` to execute the entire project and subproject in one pass.

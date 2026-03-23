@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -10,9 +9,8 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import GridSearchCV, ParameterGrid, StratifiedKFold, train_test_split
+from sklearn.model_selection import ParameterGrid, train_test_split
 
-from dataGeneration import augment_processed_data
 from preprocess import (
     NUMERIC_FEATURES,
     TARGET_COL,
@@ -20,12 +18,19 @@ from preprocess import (
     load_and_clean_data,
     transform_with_preprocessor,
 )
+from performance_visualization_utils import save_visualizations
+from project_paths import RAW_DATA_FILE, ensure_root_artifact_dirs
+from training_utils import (
+    FEATURE_SELECTION_TOP_K,
+    select_top_features,
+    smote_resample_binary,
+    tune_xgboost_with_gridsearch,
+)
 
 # --- CONFIGURATION ---
-RAW_FILE = "heart_statlog_cleveland_hungary_final(1).csv"
+RAW_FILE = RAW_DATA_FILE
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
-TARGET_TRAIN_SIZE = 100000
 AGE_GROUPS = ["Young", "Middle", "Elderly"]
 GRIDSEARCH_SCORING = "f1"
 MAX_GRIDSEARCH_FOLDS = 5
@@ -35,82 +40,6 @@ GRIDSEARCH_PARAM_GRID = {
     "learning_rate": [0.05, 0.15],
     "subsample": [0.8, 1.0],
 }
-
-
-def build_default_model():
-    return xgb.XGBClassifier(
-        n_estimators=120,
-        max_depth=4,
-        learning_rate=0.1,
-        subsample=1.0,
-        random_state=RANDOM_STATE,
-        eval_metric="logloss",
-        n_jobs=1,
-    )
-
-
-def tune_xgboost_with_gridsearch(X_train, y_train, label):
-    y_work = y_train.astype(int).reset_index(drop=True)
-    counts = y_work.value_counts()
-    min_class_count = int(counts.min()) if counts.size > 0 else 0
-    param_grid_size = len(list(ParameterGrid(GRIDSEARCH_PARAM_GRID)))
-
-    if counts.size < 2 or min_class_count < 2:
-        model = build_default_model()
-        model.fit(X_train, y_work)
-        fallback_params = {
-            "n_estimators": int(model.get_params()["n_estimators"]),
-            "max_depth": int(model.get_params()["max_depth"]),
-            "learning_rate": float(model.get_params()["learning_rate"]),
-            "subsample": float(model.get_params()["subsample"]),
-        }
-        print(
-            f"   -> {label}: fallback to default params {fallback_params} "
-            f"(insufficient class diversity for CV)"
-        )
-        return model, {
-            "status": "fallback_default_model",
-            "reason": "insufficient_class_diversity_for_cv",
-            "cv_folds": 0,
-            "param_grid_size": param_grid_size,
-            "best_params": fallback_params,
-            "best_cv_score_f1": None,
-        }
-
-    cv_folds = min(MAX_GRIDSEARCH_FOLDS, min_class_count)
-    cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=RANDOM_STATE)
-
-    search = GridSearchCV(
-        estimator=build_default_model(),
-        param_grid=GRIDSEARCH_PARAM_GRID,
-        scoring=GRIDSEARCH_SCORING,
-        cv=cv,
-        n_jobs=-1,
-        refit=True,
-        verbose=0,
-    )
-    search.fit(X_train, y_work)
-
-    best_params = {
-        "n_estimators": int(search.best_params_["n_estimators"]),
-        "max_depth": int(search.best_params_["max_depth"]),
-        "learning_rate": float(search.best_params_["learning_rate"]),
-        "subsample": float(search.best_params_["subsample"]),
-    }
-
-    print(
-        f"   -> {label}: best params {best_params} "
-        f"(CV f1={search.best_score_:.4f}, folds={cv_folds}, grid={param_grid_size})"
-    )
-
-    return search.best_estimator_, {
-        "status": "tuned",
-        "reason": None,
-        "cv_folds": int(cv_folds),
-        "param_grid_size": param_grid_size,
-        "best_params": best_params,
-        "best_cv_score_f1": float(search.best_score_),
-    }
 
 
 def get_age_cutoffs_from_preprocessor(preprocessor, low_age=45, high_age=65):
@@ -169,9 +98,16 @@ def fmt_cv(x):
     return "N/A" if pd.isna(x) else f"{x:.4f}"
 
 
+def format_feature_list(feature_info):
+    features = feature_info.get("selected_features", []) if isinstance(feature_info, dict) else []
+    return ", ".join(features) if len(features) > 0 else "N/A"
+
+
 def compare_strategies():
     print("=" * 70)
     print("LEAKAGE-SAFE MODEL COMPARISON: BASELINE vs AGE-STRATIFIED")
+    print(f"TOP-{FEATURE_SELECTION_TOP_K} FEATURE SELECTION + TRAIN-ONLY SMOTE")
+    print("NO 100K TRAIN AUGMENTATION")
     print("=" * 70)
 
     if not os.path.exists(RAW_FILE):
@@ -207,37 +143,48 @@ def compare_strategies():
         f"45y={z45:.3f}, 65y={z65:.3f} (mean={age_mean:.3f}, std={age_std:.3f})"
     )
 
-    # 3) Augment only training data.
-    train_aug = augment_processed_data(
-        train_df.drop(columns=["age_group"]),
-        target_total=TARGET_TRAIN_SIZE,
-        age_z_45=z45,
-        age_z_65=z65,
-        random_state=RANDOM_STATE,
-    )
-    train_aug["age_group"] = assign_age_group(train_aug["age"], z45, z65)
-    print(f"Augmented train rows: {len(train_aug)}")
-    print(f"Train age groups: {train_aug['age_group'].value_counts().to_dict()}")
+    print(f"Train age groups: {train_df['age_group'].value_counts().to_dict()}")
     print(f"Test age groups:  {test_df['age_group'].value_counts().to_dict()}")
     print("-" * 70)
 
-    feature_cols = [c for c in train_aug.columns if c not in [TARGET_COL, "age_group"]]
+    feature_cols = [c for c in train_df.columns if c not in [TARGET_COL, "age_group"]]
     X_test = test_df[feature_cols]
     y_test = test_df[TARGET_COL].astype(int)
 
-    # 4) Baseline model.
+    # 3) Baseline model.
     print("1) TUNING + TRAINING BASELINE model...")
+    baseline_X_train_selected, baseline_X_test_selected, baseline_feature_info = select_top_features(
+        train_df[feature_cols],
+        train_df[TARGET_COL],
+        X_test,
+        top_k=FEATURE_SELECTION_TOP_K,
+        random_state=RANDOM_STATE,
+    )
+    baseline_X_train_final, baseline_y_train_final, baseline_sampling = smote_resample_binary(
+        baseline_X_train_selected,
+        train_df[TARGET_COL],
+        random_state=RANDOM_STATE,
+    )
+    print(f"   -> Baseline top features: {format_feature_list(baseline_feature_info)}")
+    print(
+        f"   -> Baseline SMOTE: before {baseline_sampling['before_counts']} "
+        f"after {baseline_sampling['after_counts']}"
+    )
     baseline_model, baseline_tuning = tune_xgboost_with_gridsearch(
-        train_aug[feature_cols],
-        train_aug[TARGET_COL],
+        baseline_X_train_final,
+        baseline_y_train_final,
         "Baseline",
+        param_grid=GRIDSEARCH_PARAM_GRID,
+        scoring=GRIDSEARCH_SCORING,
+        max_cv_folds=MAX_GRIDSEARCH_FOLDS,
+        random_state=RANDOM_STATE,
     )
     baseline_pred = pd.Series(
-        baseline_model.predict(X_test).astype(int),
+        baseline_model.predict(baseline_X_test_selected).astype(int),
         index=test_df.index,
     )
     baseline_prob = pd.Series(
-        baseline_model.predict_proba(X_test)[:, 1],
+        baseline_model.predict_proba(baseline_X_test_selected)[:, 1],
         index=test_df.index,
     )
     baseline_overall = compute_metrics(y_test, baseline_pred, baseline_prob)
@@ -251,15 +198,17 @@ def compare_strategies():
             baseline_prob[mask],
         )
 
-    # 5) Stratified specialist models.
+    # 4) Stratified specialist models.
     print("2) TUNING + TRAINING STRATIFIED specialists...")
     strat_pred = pd.Series(index=test_df.index, dtype=float)
     strat_prob = pd.Series(index=test_df.index, dtype=float)
     strat_group_metrics = {}
     strat_tuning = {}
+    strat_feature_selection = {}
+    strat_sampling = {}
 
     for grp in AGE_GROUPS:
-        train_grp = train_aug[train_aug["age_group"] == grp]
+        train_grp = train_df[train_df["age_group"] == grp]
         test_grp = test_df[test_df["age_group"] == grp]
 
         if train_grp.empty or test_grp.empty or train_grp[TARGET_COL].nunique() < 2:
@@ -283,15 +232,33 @@ def compare_strategies():
                 "best_params": None,
                 "best_cv_score_f1": None,
             }
+            strat_feature_selection[grp] = None
+            strat_sampling[grp] = None
             continue
 
-        specialist, tuning = tune_xgboost_with_gridsearch(
+        X_train_grp_selected, X_test_grp_selected, feature_info = select_top_features(
             train_grp[feature_cols],
             train_grp[TARGET_COL],
-            grp,
+            test_grp[feature_cols],
+            top_k=FEATURE_SELECTION_TOP_K,
+            random_state=RANDOM_STATE,
         )
-        grp_pred = specialist.predict(test_grp[feature_cols]).astype(int)
-        grp_prob = specialist.predict_proba(test_grp[feature_cols])[:, 1]
+        X_train_grp_final, y_train_grp_final, sampling_info = smote_resample_binary(
+            X_train_grp_selected,
+            train_grp[TARGET_COL],
+            random_state=RANDOM_STATE,
+        )
+        specialist, tuning = tune_xgboost_with_gridsearch(
+            X_train_grp_final,
+            y_train_grp_final,
+            grp,
+            param_grid=GRIDSEARCH_PARAM_GRID,
+            scoring=GRIDSEARCH_SCORING,
+            max_cv_folds=MAX_GRIDSEARCH_FOLDS,
+            random_state=RANDOM_STATE,
+        )
+        grp_pred = specialist.predict(X_test_grp_selected).astype(int)
+        grp_prob = specialist.predict_proba(X_test_grp_selected)[:, 1]
 
         strat_pred.loc[test_grp.index] = grp_pred
         strat_prob.loc[test_grp.index] = grp_prob
@@ -301,7 +268,11 @@ def compare_strategies():
             grp_prob,
         )
         strat_tuning[grp] = tuning
+        strat_feature_selection[grp] = feature_info
+        strat_sampling[grp] = sampling_info
         print(f"   -> {grp}: Accuracy {strat_group_metrics[grp]['accuracy']:.4f}")
+        print(f"      top features: {format_feature_list(feature_info)}")
+        print(f"      SMOTE: before {sampling_info['before_counts']} after {sampling_info['after_counts']}")
 
     # Fallback if any rows were not scored by specialists.
     missing_idx = strat_pred[strat_pred.isna()].index
@@ -313,7 +284,7 @@ def compare_strategies():
     strat_pred = strat_pred.astype(int)
     strat_overall = compute_metrics(y_test, strat_pred, strat_prob)
 
-    # 6) Reporting.
+    # 5) Reporting.
     print("\n" + "=" * 70)
     print("OVERALL METRICS")
     print(f"{'Metric':<12} | {'Baseline':<10} | {'Stratified':<10} | {'Winner':<10}")
@@ -364,6 +335,40 @@ def compare_strategies():
             f"| best CV f1: {fmt_cv(tuning.get('best_cv_score_f1'))}"
         )
 
+    print("\nFEATURE SELECTION + SMOTE SUMMARY")
+    print("-" * 70)
+    print(f"Baseline top features: {format_feature_list(baseline_feature_info)}")
+    print(
+        f"Baseline SMOTE counts: before {baseline_sampling['before_counts']} "
+        f"after {baseline_sampling['after_counts']}"
+    )
+    for grp in AGE_GROUPS:
+        print(f"{grp:<10} features: {format_feature_list(strat_feature_selection.get(grp))}")
+        sampling_info = strat_sampling.get(grp)
+        if sampling_info is None:
+            print(f"{grp:<10} SMOTE: N/A")
+            continue
+        print(
+            f"{grp:<10} SMOTE: before {sampling_info['before_counts']} "
+            f"after {sampling_info['after_counts']}"
+        )
+
+    visualization_paths = save_visualizations(
+        baseline_overall,
+        strat_overall,
+        baseline_group_metrics,
+        strat_group_metrics,
+        baseline_sampling,
+        strat_sampling,
+        baseline_feature_info,
+        strat_feature_selection,
+    )
+    print("\nVISUALIZATION OUTPUTS")
+    print("-" * 70)
+    for visualization_path in visualization_paths:
+        print(f"- {visualization_path}")
+
 
 if __name__ == "__main__":
+    ensure_root_artifact_dirs()
     compare_strategies()

@@ -17,8 +17,14 @@ Main scripts and what each does:
 1) run_with_smote.py
 - Entry-point for this version.
 - Calls shared pipeline with `use_smote=True`.
+- Trains from the generated processed training dataset in the parent project:
+  - `..\datasets\processed\processed_train_100k_stratified.csv`
+- Evaluates on the processed holdout test split:
+  - `..\datasets\processed\processed_test.csv`
+- Uses the raw dataset only as a reference for age cutoffs in processed space:
+  - `..\datasets\raw\heart_statlog_cleveland_hungary_final(1).csv`
 - Saves this version's output to:
-  - `with_smote/results_with_smote.json`
+  - `results/with_smote/results_with_smote.json`
 
 2) ../shared_utils.py (shared by both versions)
 - Core pipeline implementation.
@@ -27,11 +33,15 @@ Main scripts and what each does:
 - `assign_age_groups(...)`
   - Assigns each row to `Young`, `Middle`, or `Elderly` using raw age.
 - `run_variant(...)`
-  - Full end-to-end flow:
-    - leakage-safe train/test split
-    - cohort split by age
-    - per-cohort preprocessing (fit on train cohort only)
-    - SMOTE on train cohort only (this version)
+  - Raw-data mode kept for the original comparison flow.
+- `run_variant_on_generated_data(...)`
+  - Full generated-data flow:
+    - load artificial processed train dataset
+    - load processed holdout test dataset
+    - recover age cutoffs in processed space from the raw reference dataset
+    - split both datasets into `Young`, `Middle`, and `Elderly`
+    - select top 10 training-only features per cohort
+    - SMOTE on training rows inside each cohort (this version)
     - per-cohort `GridSearchCV` tuning for XGBoost
     - per-cohort prediction and metrics
     - aggregate overall metrics across cohorts
@@ -60,13 +70,19 @@ Main scripts and what each does:
   - overall metric comparison
   - per-cohort metric comparison
   - best hyperparameter table per cohort
-  - markdown report `SMOTE_COMPARISON_REPORT.md`
+  - markdown report `reports/SMOTE_COMPARISON_REPORT.md`
+  - visualization PNGs in `visualizations/`
+    - overall metrics
+    - per-cohort metrics
+    - confusion matrices
+    - sampling comparison
+    - selected-feature importance comparison
 
 Techniques used in this SMOTE cohort-tuned version:
 
 1) Leakage-safe preprocessing
-- Train/test split occurs before fitting preprocessors.
-- Each cohort has its own preprocessor fitted only on that cohort's training rows.
+- The generated train dataset and processed test dataset come from the parent project's leakage-safe preprocessing pipeline.
+- Test rows remain separated from the generated training dataset.
 
 2) Cohort-specific modeling
 - Separate models for `Young`, `Middle`, and `Elderly`.
@@ -81,16 +97,19 @@ Techniques used in this SMOTE cohort-tuned version:
 - Per-cohort dynamic tuning finds best tree settings for that cohort.
 - Better than using one fixed XGBoost configuration for all age groups.
 
-5) Multi-level evaluation
+5) Cohort-wise feature selection
+- Keeps the top 10 training-only features per cohort using XGBoost feature importance.
+- Happens before SMOTE so both comparison variants use the same reduced cohort feature set.
+
+6) Multi-level evaluation
 - Metrics reported at two levels:
   - Cohort-level
   - Overall combined
 - Includes threshold-dependent metrics and ranking metrics (ROC-AUC, PR-AUC).
 
 Important outputs for this version:
-- `results_with_smote.json`:
+- `results/with_smote/results_with_smote.json`:
   - per-cohort sampling stats
   - per-cohort best GridSearch parameters
   - per-cohort and overall metrics
-- Used by `SMOTE_COMPARISON_REPORT.md` when comparison script runs.
-
+- Used by `reports/SMOTE_COMPARISON_REPORT.md` when comparison script runs.
