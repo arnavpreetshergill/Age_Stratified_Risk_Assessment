@@ -23,6 +23,7 @@ COHORT_RULES = {
     "Middle": "45 <= age <= 65",
     "Elderly": "age > 65",
 }
+DEFAULT_TEST_SIZE = 0.3
 
 
 def load_and_clean_data(input_file: str | Any) -> pd.DataFrame:
@@ -77,7 +78,7 @@ def transform_with_preprocessor(
 
 def split_raw_train_test(
     input_file: str | Any,
-    test_size: float = 0.2,
+    test_size: float = DEFAULT_TEST_SIZE,
     random_state: int = 42,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     df_clean = load_and_clean_data(input_file)
@@ -101,7 +102,7 @@ def split_raw_train_test(
 
 def prepare_train_test_data(
     input_file: str | Any,
-    test_size: float = 0.2,
+    test_size: float = DEFAULT_TEST_SIZE,
     random_state: int = 42,
 ) -> dict[str, Any]:
     X_train_raw, X_test_raw, y_train, y_test = split_raw_train_test(
@@ -134,7 +135,7 @@ def get_processed_age_cutoffs(preprocessor: ColumnTransformer) -> tuple[float, f
 
 def compute_age_z_thresholds(
     raw_file: str | Any,
-    test_size: float = 0.2,
+    test_size: float = DEFAULT_TEST_SIZE,
     random_state: int = 42,
 ) -> tuple[float, float, float, float]:
     split_data = prepare_train_test_data(

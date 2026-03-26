@@ -1,4 +1,4 @@
-from data_pipeline_utils import prepare_train_test_data
+from data_pipeline_utils import DEFAULT_TEST_SIZE, prepare_train_test_data
 from project_paths import (
     PROCESSED_TEST_FILE,
     PROCESSED_TRAIN_FILE,
@@ -11,7 +11,7 @@ def preprocess_train_test_split(
     input_file,
     train_output_file="processed_train.csv",
     test_output_file="processed_test.csv",
-    test_size=0.2,
+    test_size=DEFAULT_TEST_SIZE,
     random_state=42,
 ):
     split_data = prepare_train_test_data(
