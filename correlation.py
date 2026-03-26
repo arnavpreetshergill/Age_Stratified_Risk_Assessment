@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from data_pipeline_utils import TARGET_COL
 from project_paths import CORRELATION_HEATMAP_FILE, PROCESSED_TRAIN_FILE, ensure_root_artifact_dirs
 
 DATA_FILE = PROCESSED_TRAIN_FILE
@@ -22,6 +23,8 @@ def main():
     print(f"Loaded dataset: {DATA_FILE} ({df.shape[0]} rows, {df.shape[1]} columns)")
 
     numerical_df = df.select_dtypes(include=["float64", "int64"])
+    if TARGET_COL in numerical_df.columns:
+        numerical_df = numerical_df.drop(columns=[TARGET_COL])
     if numerical_df.empty:
         print("Error: no numeric columns available for correlation analysis.")
         return
@@ -41,7 +44,7 @@ def main():
         square=True,
         mask=mask,
     )
-    plt.title("Correlation Matrix Heatmap")
+    plt.title("Processed Training Feature Correlation Matrix")
     plt.tight_layout()
     plt.savefig(OUTPUT_FILE, dpi=200, bbox_inches="tight")
     plt.close()

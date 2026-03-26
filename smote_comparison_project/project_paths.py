@@ -9,7 +9,7 @@ WITHOUT_SMOTE_RESULTS_DIR = RESULTS_DIR / "without_smote"
 REPORTS_DIR = SUBPROJECT_ROOT / "reports"
 VISUALIZATIONS_DIR = SUBPROJECT_ROOT / "visualizations"
 
-ROOT_PROCESSED_TRAIN_FILE = PROJECT_ROOT / "datasets" / "processed" / "processed_train_100k_stratified.csv"
+ROOT_GENERATED_TRAIN_FILE = PROJECT_ROOT / "datasets" / "processed" / "processed_train_100k_stratified.csv"
 ROOT_PROCESSED_TEST_FILE = PROJECT_ROOT / "datasets" / "processed" / "processed_test.csv"
 ROOT_RAW_DATA_FILE = PROJECT_ROOT / "datasets" / "raw" / "heart_statlog_cleveland_hungary_final(1).csv"
 

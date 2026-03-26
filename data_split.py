@@ -1,8 +1,7 @@
 import pandas as pd
 import os
-from sklearn.model_selection import train_test_split
 
-from preprocess import NUMERIC_FEATURES, TARGET_COL, build_preprocessor, load_and_clean_data
+from data_pipeline_utils import AGE_GROUPS, assign_age_group_processed, compute_age_z_thresholds
 from project_paths import (
     ELDERLY_COHORT_FILE,
     MIDDLE_COHORT_FILE,
@@ -22,29 +21,6 @@ OUT_MIDDLE = MIDDLE_COHORT_FILE
 OUT_ELDERLY = ELDERLY_COHORT_FILE
 
 
-def compute_age_z_thresholds(raw_file, test_size=0.2, random_state=42):
-    df_clean = load_and_clean_data(raw_file)
-    X_raw = df_clean.drop(columns=[TARGET_COL])
-    y_raw = df_clean[TARGET_COL].astype(int)
-
-    X_train_raw, _, _, _ = train_test_split(
-        X_raw,
-        y_raw,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y_raw,
-    )
-
-    preprocessor = build_preprocessor()
-    preprocessor.fit(X_train_raw)
-    scaler = preprocessor.named_transformers_["num"]
-    age_idx = NUMERIC_FEATURES.index("age")
-    raw_mean = float(scaler.mean_[age_idx])
-    raw_std = float(scaler.scale_[age_idx])
-    z_score_45 = (45 - raw_mean) / raw_std
-    z_score_65 = (65 - raw_mean) / raw_std
-    return z_score_45, z_score_65, raw_mean, raw_std
-
 def split_by_age_group():
     # 1. Load the Data
     if not os.path.exists(PROCESSED_FILE) or not os.path.exists(RAW_FILE):
@@ -62,14 +38,14 @@ def split_by_age_group():
     print(f"Cutoff Thresholds     -> Age 45 (Z={z_score_45:.3f}), Age 65 (Z={z_score_65:.3f})")
 
     # 3. Perform the Split
-    # Young: Age < 45
-    df_young = df_100k[df_100k['age'] < z_score_45]
-    
-    # Middle: 45 <= Age <= 65
-    df_middle = df_100k[(df_100k['age'] >= z_score_45) & (df_100k['age'] <= z_score_65)]
-    
-    # Elderly: Age > 65
-    df_elderly = df_100k[df_100k['age'] > z_score_65]
+    df_100k["age_group"] = assign_age_group_processed(df_100k["age"], z_score_45, z_score_65)
+    cohort_frames = {
+        age_group: df_100k[df_100k["age_group"] == age_group].drop(columns=["age_group"])
+        for age_group in AGE_GROUPS
+    }
+    df_young = cohort_frames["Young"]
+    df_middle = cohort_frames["Middle"]
+    df_elderly = cohort_frames["Elderly"]
 
     # 4. Save to Files
     df_young.to_csv(OUT_YOUNG, index=False)

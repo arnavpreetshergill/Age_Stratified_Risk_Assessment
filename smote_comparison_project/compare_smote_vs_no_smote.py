@@ -2,10 +2,10 @@ from typing import Any, Dict, List, Tuple
 
 from project_paths import (
     REPORT_FILE,
+    ROOT_GENERATED_TRAIN_FILE,
+    ROOT_PROCESSED_TEST_FILE,
     RESULTS_WITHOUT_SMOTE_FILE,
     RESULTS_WITH_SMOTE_FILE,
-    ROOT_PROCESSED_TEST_FILE,
-    ROOT_PROCESSED_TRAIN_FILE,
     ROOT_RAW_DATA_FILE,
     ensure_subproject_artifact_dirs,
 )
@@ -78,22 +78,20 @@ def features_to_text(feature_selection: Dict[str, Any] | None) -> str:
 
 def main() -> None:
     ensure_subproject_artifact_dirs()
-    generated_train_file = ROOT_PROCESSED_TRAIN_FILE
-    processed_test_file = ROOT_PROCESSED_TEST_FILE
-    raw_reference_file = ROOT_RAW_DATA_FILE
+    raw_file = ROOT_RAW_DATA_FILE
 
     without_smote = run_variant_on_generated_data(
-        processed_train_file=generated_train_file,
-        processed_test_file=processed_test_file,
-        raw_reference_file=raw_reference_file,
+        raw_file=raw_file,
+        generated_train_file=ROOT_GENERATED_TRAIN_FILE,
+        processed_test_file=ROOT_PROCESSED_TEST_FILE,
         use_smote=False,
         output_json=RESULTS_WITHOUT_SMOTE_FILE,
         variant_name="WITHOUT_SMOTE",
     )
     with_smote = run_variant_on_generated_data(
-        processed_train_file=generated_train_file,
-        processed_test_file=processed_test_file,
-        raw_reference_file=raw_reference_file,
+        raw_file=raw_file,
+        generated_train_file=ROOT_GENERATED_TRAIN_FILE,
+        processed_test_file=ROOT_PROCESSED_TEST_FILE,
         use_smote=True,
         output_json=RESULTS_WITH_SMOTE_FILE,
         variant_name="WITH_SMOTE",
@@ -108,7 +106,7 @@ def main() -> None:
         overall_rows.append((metric_label, base_value, smote_value, delta, winner))
 
     print("=" * 96)
-    print("MODEL PERFORMANCE COMPARISON (WITH SMOTE vs WITHOUT SMOTE) - COHORT-TUNED GRIDSEARCH")
+    print("MODEL PERFORMANCE COMPARISON (WITH SMOTE vs WITHOUT SMOTE) - FIXED TRAIN/TEST HOLDOUT")
     print("=" * 96)
     print(f"{'Metric':<12} | {'Without SMOTE':<13} | {'With SMOTE':<10} | {'Delta':<10} | Winner")
     print("-" * 96)
@@ -152,15 +150,15 @@ def main() -> None:
             )
 
     print("\n" + "=" * 96)
-    print("BEST HYPERPARAMETERS BY COHORT (GRIDSEARCH)")
+    print("MODEL PARAMETERS BY COHORT")
     print("=" * 96)
-    print(f"{'Cohort':<8} | {'Without SMOTE Best Params':<40} | {'With SMOTE Best Params'}")
+    print(f"{'Cohort':<8} | {'Without SMOTE Params':<40} | {'With SMOTE Params'}")
     print("-" * 96)
     for cohort in AGE_GROUPS:
-        without_tuning = without_smote["cohorts"][cohort]["tuning"]
-        with_tuning = with_smote["cohorts"][cohort]["tuning"]
-        without_params = params_to_text(without_tuning.get("best_params"))
-        with_params = params_to_text(with_tuning.get("best_params"))
+        without_model_info = without_smote["cohorts"][cohort]["model_info"]
+        with_model_info = with_smote["cohorts"][cohort]["model_info"]
+        without_params = params_to_text(without_model_info.get("params"))
+        with_params = params_to_text(with_model_info.get("params"))
         print(f"{cohort:<8} | {without_params:<40} | {with_params}")
 
     print("\n" + "=" * 96)
@@ -180,20 +178,19 @@ def main() -> None:
     visualization_paths = save_visualizations(without_smote, with_smote)
 
     report_lines = [
-        "# SMOTE vs Non-SMOTE Cardiovascular Disease Comparison (Cohort-Tuned GridSearch)",
+        "# SMOTE vs Non-SMOTE Cardiovascular Disease Comparison (Fixed Train/Test Holdout)",
         "",
         "Target label meaning: `1 = cardiovascular disease`, `0 = no cardiovascular disease`.",
         "",
         "## Data sources",
         "",
-        f"- Training dataset: `{without_smote['dataset_source']['processed_train_file']}`",
-        f"- Evaluation dataset: `{without_smote['dataset_source']['processed_test_file']}`",
-        f"- Raw reference dataset for processed age cutoffs: `{without_smote['dataset_source']['raw_reference_file']}`",
-        (
-            "- Processed age cutoffs used for cohort assignment: "
-            f"Young < {fmt(without_smote['dataset_source']['age_cutoffs_processed']['young_upper_bound_processed'])}, "
-            f"Middle <= {fmt(without_smote['dataset_source']['age_cutoffs_processed']['middle_upper_bound_processed'])}"
-        ),
+        f"- Raw dataset: `{without_smote['dataset_source']['raw_file']}`",
+        f"- Evaluation mode: `{without_smote['dataset_source']['mode']}`",
+        f"- Generated train file: `{without_smote['dataset_source']['generated_train_file']}`",
+        f"- Processed test file: `{without_smote['dataset_source']['processed_test_file']}`",
+        f"- Generated train rows: `{without_smote['dataset_source']['generated_train_rows']}`",
+        f"- Test source: {without_smote['dataset_source']['test_source']}",
+        f"- Processed age cutoffs: {without_smote['dataset_source']['processed_age_cutoffs']}",
         "",
         "## Cohort rules",
         "",
@@ -204,12 +201,11 @@ def main() -> None:
 
     report_lines += [
         "",
-        "## GridSearch configuration",
+        "## Model parameter configuration",
         "",
-        f"- Method: {without_smote['grid_search']['method']}",
-        f"- Scoring: {without_smote['grid_search']['scoring']}",
-        f"- Param grid: {without_smote['grid_search']['param_grid']}",
-        f"- Grid size per cohort: {without_smote['grid_search']['param_grid_size']}",
+        f"- Method: {without_smote['model_configuration']['method']}",
+        f"- Selection policy: {without_smote['model_configuration']['selection_policy']}",
+        f"- Params: {without_smote['model_configuration']['params']}",
         "",
         "## Feature selection configuration",
         "",
@@ -250,17 +246,24 @@ def main() -> None:
 
     report_lines += [
         "",
-        "## Best hyperparameters by cohort",
+        "## Evaluation split details",
+        "",
+        f"- Generated training rows: `{without_smote['train_rows_before_sampling']}`",
+        f"- Test rows: `{without_smote['test_rows']}`",
+        f"- Without SMOTE train rows after sampling: `{without_smote['train_rows_after_sampling']}`",
+        f"- With SMOTE train rows after sampling: `{with_smote['train_rows_after_sampling']}`",
+        "",
+        "## Model parameters by cohort",
         "",
         "| Cohort | Without SMOTE | With SMOTE |",
         "|---|---|---|",
     ]
 
     for cohort in AGE_GROUPS:
-        without_tuning = without_smote["cohorts"][cohort]["tuning"]
-        with_tuning = with_smote["cohorts"][cohort]["tuning"]
-        without_params = params_to_text(without_tuning.get("best_params"))
-        with_params = params_to_text(with_tuning.get("best_params"))
+        without_model_info = without_smote["cohorts"][cohort]["model_info"]
+        with_model_info = with_smote["cohorts"][cohort]["model_info"]
+        without_params = params_to_text(without_model_info.get("params"))
+        with_params = params_to_text(with_model_info.get("params"))
         report_lines.append(f"| {cohort} | {without_params} | {with_params} |")
 
     report_lines += [

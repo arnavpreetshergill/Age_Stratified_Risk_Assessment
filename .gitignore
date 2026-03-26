@@ -11,7 +11,6 @@ performance_visualizations/
 artifacts/
 smote_comparison_project/artifacts/
 
-processed_heart_data_full.csv
 processed_train.csv
 processed_test.csv
 processed_train_100k_stratified.csv

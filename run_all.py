@@ -19,7 +19,7 @@ STEPS = [
     ("Preprocess raw data", ROOT / "preprocess.py"),
     ("Augment processed training data", ROOT / "dataGeneration.py"),
     ("Split augmented cohorts", ROOT / "data_split.py"),
-    ("Run baseline vs stratified comparison", ROOT / "performance_comparison.py"),
+    ("Run baseline vs age-specialist comparison", ROOT / "performance_comparison.py"),
     ("Generate SHAP explanations", ROOT / "gradient_boost_SHAP.py"),
     ("Generate age-group distribution plot", ROOT / "vis.py"),
     ("Generate correlation heatmap", ROOT / "correlation.py"),

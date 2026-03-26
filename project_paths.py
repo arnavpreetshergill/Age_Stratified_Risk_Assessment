@@ -12,7 +12,6 @@ SHAP_VISUALIZATIONS_DIR = VISUALIZATIONS_DIR / "shap"
 
 RAW_DATA_FILE = RAW_DATA_DIR / "heart_statlog_cleveland_hungary_final(1).csv"
 
-PROCESSED_FULL_FILE = PROCESSED_DATA_DIR / "processed_heart_data_full.csv"
 PROCESSED_TRAIN_FILE = PROCESSED_DATA_DIR / "processed_train.csv"
 PROCESSED_TEST_FILE = PROCESSED_DATA_DIR / "processed_test.csv"
 PROCESSED_TRAIN_100K_FILE = PROCESSED_DATA_DIR / "processed_train_100k_stratified.csv"
