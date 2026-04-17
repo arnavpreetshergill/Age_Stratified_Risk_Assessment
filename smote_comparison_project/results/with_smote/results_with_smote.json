@@ -1,0 +1,302 @@
+{
+  "variant": "WITH_SMOTE",
+  "use_smote": true,
+  "dataset_rows_after_cleaning": 917,
+  "dataset_source": {
+    "mode": "fixed_generated_train_with_real_holdout_test",
+    "raw_file": "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\datasets\\raw\\heart_statlog_cleveland_hungary_final(1).csv",
+    "generated_train_file": "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\datasets\\processed\\processed_train_100k_stratified.csv",
+    "processed_test_file": "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\datasets\\processed\\processed_test.csv",
+    "generated_train_rows": 100000,
+    "test_source": "fixed processed_test.csv transformed with the train-fitted preprocessor",
+    "processed_age_cutoffs": "derived once from the single train-fitted scaler used for processed_train/processed_test"
+  },
+  "feature_selection": {
+    "enabled": true,
+    "method": "xgboost_feature_importance_top_k",
+    "top_k": 10,
+    "stage": "before the single holdout fit on each cohort"
+  },
+  "target_definition": "1 = cardiovascular disease, 0 = no cardiovascular disease",
+  "cohort_definition": {
+    "Young": "age < 45",
+    "Middle": "45 <= age <= 65",
+    "Elderly": "age > 65"
+  },
+  "model_configuration": {
+    "method": "default_xgboost_params",
+    "selection_policy": "fixed_default_values",
+    "params": {
+      "n_estimators": 120,
+      "max_depth": 4,
+      "learning_rate": 0.1,
+      "subsample": 1.0,
+      "colsample_bytree": 1.0,
+      "eval_metric": "logloss",
+      "n_jobs": 1
+    }
+  },
+  "train_rows_before_sampling": 100000,
+  "train_rows_after_sampling": 120750,
+  "test_rows": 276,
+  "train_class_counts_before_sampling_overall": {
+    "0": 44774,
+    "1": 55226
+  },
+  "train_class_counts_after_sampling_overall": {
+    "0": 60375,
+    "1": 60375
+  },
+  "cohorts": {
+    "Young": {
+      "rule": "age < 45",
+      "train_rows_before_sampling": 19189,
+      "train_rows_after_sampling": 24338,
+      "test_rows": 55,
+      "feature_selection": {
+        "applied": true,
+        "reason": "top_k_selected",
+        "method": "xgboost_feature_importance_top_k",
+        "requested_top_k": 10,
+        "selected_features": [
+          "chest_pain_type_4",
+          "exercise_angina",
+          "st_slope_2",
+          "fasting_blood_sugar",
+          "oldpeak",
+          "chest_pain_type_3",
+          "resting_ecg_2",
+          "max_heart_rate",
+          "chest_pain_type_2",
+          "sex"
+        ],
+        "selected_feature_importances": {
+          "chest_pain_type_4": 0.47621506452560425,
+          "exercise_angina": 0.16717642545700073,
+          "st_slope_2": 0.12483444064855576,
+          "fasting_blood_sugar": 0.05693706125020981,
+          "oldpeak": 0.03446150943636894,
+          "chest_pain_type_3": 0.025440003722906113,
+          "resting_ecg_2": 0.02261478826403618,
+          "max_heart_rate": 0.01820140890777111,
+          "chest_pain_type_2": 0.017614679411053658,
+          "sex": 0.015450459904968739
+        }
+      },
+      "sampling": {
+        "applied": true,
+        "minority_label": 1,
+        "before_counts": {
+          "0": 12169,
+          "1": 7020
+        },
+        "after_counts": {
+          "0": 12169,
+          "1": 12169
+        },
+        "generated_samples": 5149,
+        "k_neighbors_used": 5
+      },
+      "model_info": {
+        "model_key": "xgboost",
+        "model_name": "XGBoost",
+        "method": "default_model_params",
+        "status": "applied",
+        "reason": "fixed_default_model",
+        "label": "WITH_SMOTE Young Holdout",
+        "params": {
+          "colsample_bytree": 1.0,
+          "eval_metric": "logloss",
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 120,
+          "n_jobs": 1,
+          "subsample": 1.0
+        }
+      },
+      "metrics": {
+        "accuracy": 0.8181818181818182,
+        "precision": 0.5882352941176471,
+        "recall": 0.7692307692307693,
+        "f1": 0.6666666666666666,
+        "roc_auc": 0.8937728937728937,
+        "pr_auc": 0.7780654937617775,
+        "tn": 35,
+        "fp": 7,
+        "fn": 3,
+        "tp": 10
+      }
+    },
+    "Middle": {
+      "rule": "45 <= age <= 65",
+      "train_rows_before_sampling": 70983,
+      "train_rows_after_sampling": 82996,
+      "test_rows": 203,
+      "feature_selection": {
+        "applied": true,
+        "reason": "top_k_selected",
+        "method": "xgboost_feature_importance_top_k",
+        "requested_top_k": 10,
+        "selected_features": [
+          "st_slope_2",
+          "exercise_angina",
+          "st_slope_3",
+          "chest_pain_type_4",
+          "fasting_blood_sugar",
+          "sex",
+          "cholesterol",
+          "oldpeak",
+          "chest_pain_type_2",
+          "max_heart_rate"
+        ],
+        "selected_feature_importances": {
+          "st_slope_2": 0.289508581161499,
+          "exercise_angina": 0.2154025137424469,
+          "st_slope_3": 0.1532611846923828,
+          "chest_pain_type_4": 0.130944162607193,
+          "fasting_blood_sugar": 0.038745202124118805,
+          "sex": 0.03648111969232559,
+          "cholesterol": 0.026460746303200722,
+          "oldpeak": 0.026019850745797157,
+          "chest_pain_type_2": 0.024014772847294807,
+          "max_heart_rate": 0.020384879782795906
+        }
+      },
+      "sampling": {
+        "applied": true,
+        "minority_label": 0,
+        "before_counts": {
+          "0": 29485,
+          "1": 41498
+        },
+        "after_counts": {
+          "0": 41498,
+          "1": 41498
+        },
+        "generated_samples": 12013,
+        "k_neighbors_used": 5
+      },
+      "model_info": {
+        "model_key": "xgboost",
+        "model_name": "XGBoost",
+        "method": "default_model_params",
+        "status": "applied",
+        "reason": "fixed_default_model",
+        "label": "WITH_SMOTE Middle Holdout",
+        "params": {
+          "colsample_bytree": 1.0,
+          "eval_metric": "logloss",
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 120,
+          "n_jobs": 1,
+          "subsample": 1.0
+        }
+      },
+      "metrics": {
+        "accuracy": 0.8719211822660099,
+        "precision": 0.8976377952755905,
+        "recall": 0.8976377952755905,
+        "f1": 0.8976377952755905,
+        "roc_auc": 0.9012639867384997,
+        "pr_auc": 0.9204586383226893,
+        "tn": 63,
+        "fp": 13,
+        "fn": 13,
+        "tp": 114
+      }
+    },
+    "Elderly": {
+      "rule": "age > 65",
+      "train_rows_before_sampling": 9828,
+      "train_rows_after_sampling": 13416,
+      "test_rows": 18,
+      "feature_selection": {
+        "applied": true,
+        "reason": "top_k_selected",
+        "method": "xgboost_feature_importance_top_k",
+        "requested_top_k": 10,
+        "selected_features": [
+          "chest_pain_type_4",
+          "sex",
+          "exercise_angina",
+          "st_slope_2",
+          "resting_ecg_2",
+          "fasting_blood_sugar",
+          "chest_pain_type_3",
+          "resting_ecg_1",
+          "oldpeak",
+          "resting_bp_s"
+        ],
+        "selected_feature_importances": {
+          "chest_pain_type_4": 0.5765085220336914,
+          "sex": 0.08736792951822281,
+          "exercise_angina": 0.05642247200012207,
+          "st_slope_2": 0.041613731533288956,
+          "resting_ecg_2": 0.038363296538591385,
+          "fasting_blood_sugar": 0.031552959233522415,
+          "chest_pain_type_3": 0.024953626096248627,
+          "resting_ecg_1": 0.024097135290503502,
+          "oldpeak": 0.02375732734799385,
+          "resting_bp_s": 0.021889008581638336
+        }
+      },
+      "sampling": {
+        "applied": true,
+        "minority_label": 0,
+        "before_counts": {
+          "0": 3120,
+          "1": 6708
+        },
+        "after_counts": {
+          "0": 6708,
+          "1": 6708
+        },
+        "generated_samples": 3588,
+        "k_neighbors_used": 5
+      },
+      "model_info": {
+        "model_key": "xgboost",
+        "model_name": "XGBoost",
+        "method": "default_model_params",
+        "status": "applied",
+        "reason": "fixed_default_model",
+        "label": "WITH_SMOTE Elderly Holdout",
+        "params": {
+          "colsample_bytree": 1.0,
+          "eval_metric": "logloss",
+          "learning_rate": 0.1,
+          "max_depth": 4,
+          "n_estimators": 120,
+          "n_jobs": 1,
+          "subsample": 1.0
+        }
+      },
+      "metrics": {
+        "accuracy": 0.8333333333333334,
+        "precision": 0.8571428571428571,
+        "recall": 0.9230769230769231,
+        "f1": 0.8888888888888888,
+        "roc_auc": 0.9230769230769231,
+        "pr_auc": 0.975983292725374,
+        "tn": 3,
+        "fp": 2,
+        "fn": 1,
+        "tp": 12
+      }
+    }
+  },
+  "overall_metrics": {
+    "accuracy": 0.8586956521739131,
+    "precision": 0.8607594936708861,
+    "recall": 0.8888888888888888,
+    "f1": 0.8745980707395499,
+    "roc_auc": 0.8962750411817844,
+    "pr_auc": 0.8942306366328424,
+    "tn": 101,
+    "fp": 22,
+    "fn": 17,
+    "tp": 136
+  },
+  "missing_prediction_fallback": null
+}

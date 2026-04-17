@@ -1,0 +1,3888 @@
+{
+  "dataset": {
+    "raw_file": "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\datasets\\raw\\heart_statlog_cleveland_hungary_final(1).csv",
+    "train_rows": 641,
+    "test_rows": 276,
+    "train_class_counts": {
+      "0": 287,
+      "1": 354
+    },
+    "test_class_counts": {
+      "0": 123,
+      "1": 153
+    },
+    "train_age_groups": {
+      "Middle": 455,
+      "Young": 123,
+      "Elderly": 63
+    },
+    "test_age_groups": {
+      "Middle": 203,
+      "Young": 55,
+      "Elderly": 18
+    }
+  },
+  "configuration": {
+    "feature_selection_top_k": 10,
+    "smote_mode": "train_only",
+    "holdout_random_state": 42,
+    "model_selection": "fixed_default_params",
+    "available_models": [
+      "logistic_regression",
+      "random_forest",
+      "xgboost",
+      "lightgbm",
+      "svm",
+      "mlp",
+      "knn",
+      "decision_tree",
+      "naive_bayes",
+      "catboost",
+      "adaboost"
+    ],
+    "unavailable_models": {}
+  },
+  "models": {
+    "logistic_regression": {
+      "model_key": "logistic_regression",
+      "model_name": "Logistic Regression",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8840579710144928,
+          "recall": 0.8954248366013072,
+          "f1": 0.8954248366013072,
+          "roc_auc": 0.9396886125724002,
+          "pr_auc": 0.9494716746470738,
+          "tn": 107,
+          "fp": 16,
+          "fn": 16,
+          "tp": 137
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.6923076923076923,
+            "f1": 0.72,
+            "roc_auc": 0.945054945054945,
+            "pr_auc": 0.8091269841269841,
+            "tn": 39,
+            "fp": 3,
+            "fn": 4,
+            "tp": 9
+          },
+          "Middle": {
+            "accuracy": 0.8817733990147784,
+            "recall": 0.905511811023622,
+            "f1": 0.905511811023622,
+            "roc_auc": 0.9315167840861998,
+            "pr_auc": 0.9574174428803788,
+            "tn": 64,
+            "fp": 12,
+            "fn": 12,
+            "tp": 115
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9846153846153847,
+            "pr_auc": 0.9945054945054945,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "logistic_regression",
+          "model_name": "Logistic Regression",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Logistic Regression Baseline Holdout",
+          "params": {
+            "C": 1.0,
+            "max_iter": 2000,
+            "solver": "liblinear"
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8840579710144928,
+          "recall": 0.8954248366013072,
+          "f1": 0.8954248366013072,
+          "roc_auc": 0.9223125564588979,
+          "pr_auc": 0.9117912832369091,
+          "tn": 107,
+          "fp": 16,
+          "fn": 16,
+          "tp": 137
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8363636363636363,
+            "recall": 0.7692307692307693,
+            "f1": 0.6896551724137931,
+            "roc_auc": 0.8571428571428572,
+            "pr_auc": 0.6951918153531056,
+            "tn": 36,
+            "fp": 6,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8916256157635468,
+            "recall": 0.8976377952755905,
+            "f1": 0.912,
+            "roc_auc": 0.9307915457936178,
+            "pr_auc": 0.9554076308104653,
+            "tn": 67,
+            "fp": 9,
+            "fn": 13,
+            "tp": 114
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9846153846153847,
+            "pr_auc": 0.9945054945054945,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "logistic_regression",
+            "model_name": "Logistic Regression",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Logistic Regression Young Holdout",
+            "params": {
+              "C": 1.0,
+              "max_iter": 2000,
+              "solver": "liblinear"
+            }
+          },
+          "Middle": {
+            "model_key": "logistic_regression",
+            "model_name": "Logistic Regression",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Logistic Regression Middle Holdout",
+            "params": {
+              "C": 1.0,
+              "max_iter": 2000,
+              "solver": "liblinear"
+            }
+          },
+          "Elderly": {
+            "model_key": "logistic_regression",
+            "model_name": "Logistic Regression",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Logistic Regression Elderly Holdout",
+            "params": {
+              "C": 1.0,
+              "max_iter": 2000,
+              "solver": "liblinear"
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\logistic_regression\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\logistic_regression\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\logistic_regression\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\logistic_regression\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\logistic_regression\\feature_selection_comparison.png"
+      ]
+    },
+    "random_forest": {
+      "model_key": "random_forest",
+      "model_name": "Random Forest",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.9094202898550725,
+          "recall": 0.9215686274509803,
+          "f1": 0.9185667752442996,
+          "roc_auc": 0.9492534141027685,
+          "pr_auc": 0.9549133661632344,
+          "tn": 110,
+          "fp": 13,
+          "fn": 12,
+          "tp": 141
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9454545454545454,
+            "recall": 0.9230769230769231,
+            "f1": 0.8888888888888888,
+            "roc_auc": 0.9505494505494506,
+            "pr_auc": 0.848887798025729,
+            "tn": 40,
+            "fp": 2,
+            "fn": 1,
+            "tp": 12
+          },
+          "Middle": {
+            "accuracy": 0.896551724137931,
+            "recall": 0.9133858267716536,
+            "f1": 0.9169960474308301,
+            "roc_auc": 0.9424989639452963,
+            "pr_auc": 0.9650134062060607,
+            "tn": 66,
+            "fp": 10,
+            "fn": 11,
+            "tp": 116
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "random_forest",
+          "model_name": "Random Forest",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Random Forest Baseline Holdout",
+          "params": {
+            "max_depth": 6,
+            "min_samples_leaf": 1,
+            "min_samples_split": 2,
+            "n_estimators": 250,
+            "n_jobs": 1
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8695652173913043,
+          "recall": 0.8823529411764706,
+          "f1": 0.8823529411764706,
+          "roc_auc": 0.9244912056963707,
+          "pr_auc": 0.918392954719828,
+          "tn": 105,
+          "fp": 18,
+          "fn": 18,
+          "tp": 135
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8909090909090909,
+            "recall": 0.8461538461538461,
+            "f1": 0.7857142857142857,
+            "roc_auc": 0.9047619047619048,
+            "pr_auc": 0.7463924963924964,
+            "tn": 38,
+            "fp": 4,
+            "fn": 2,
+            "tp": 11
+          },
+          "Middle": {
+            "accuracy": 0.8719211822660099,
+            "recall": 0.889763779527559,
+            "f1": 0.8968253968253969,
+            "roc_auc": 0.929444674678823,
+            "pr_auc": 0.9558697979303339,
+            "tn": 64,
+            "fp": 12,
+            "fn": 14,
+            "tp": 113
+          },
+          "Elderly": {
+            "accuracy": 0.7777777777777778,
+            "recall": 0.8461538461538461,
+            "f1": 0.8461538461538461,
+            "roc_auc": 0.8153846153846154,
+            "pr_auc": 0.9003024753024751,
+            "tn": 3,
+            "fp": 2,
+            "fn": 2,
+            "tp": 11
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "random_forest",
+            "model_name": "Random Forest",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Random Forest Young Holdout",
+            "params": {
+              "max_depth": 6,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2,
+              "n_estimators": 250,
+              "n_jobs": 1
+            }
+          },
+          "Middle": {
+            "model_key": "random_forest",
+            "model_name": "Random Forest",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Random Forest Middle Holdout",
+            "params": {
+              "max_depth": 6,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2,
+              "n_estimators": 250,
+              "n_jobs": 1
+            }
+          },
+          "Elderly": {
+            "model_key": "random_forest",
+            "model_name": "Random Forest",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Random Forest Elderly Holdout",
+            "params": {
+              "max_depth": 6,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2,
+              "n_estimators": 250,
+              "n_jobs": 1
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\random_forest\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\random_forest\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\random_forest\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\random_forest\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\random_forest\\feature_selection_comparison.png"
+      ]
+    },
+    "xgboost": {
+      "model_key": "xgboost",
+      "model_name": "XGBoost",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8913043478260869,
+          "recall": 0.8954248366013072,
+          "f1": 0.9013157894736842,
+          "roc_auc": 0.9401668526489187,
+          "pr_auc": 0.9515630894386249,
+          "tn": 109,
+          "fp": 14,
+          "fn": 16,
+          "tp": 137
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9090909090909091,
+            "recall": 0.7692307692307693,
+            "f1": 0.8,
+            "roc_auc": 0.9652014652014652,
+            "pr_auc": 0.8890509063585985,
+            "tn": 40,
+            "fp": 2,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8768472906403941,
+            "recall": 0.8976377952755905,
+            "f1": 0.9011857707509882,
+            "roc_auc": 0.9241607956900124,
+            "pr_auc": 0.954006343872039,
+            "tn": 64,
+            "fp": 12,
+            "fn": 13,
+            "tp": 114
+          },
+          "Elderly": {
+            "accuracy": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 5,
+            "fp": 0,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "xgboost",
+          "model_name": "XGBoost",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "XGBoost Baseline Holdout",
+          "params": {
+            "colsample_bytree": 1.0,
+            "eval_metric": "logloss",
+            "learning_rate": 0.1,
+            "max_depth": 4,
+            "n_estimators": 120,
+            "n_jobs": 1,
+            "subsample": 1.0
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8405797101449275,
+          "recall": 0.8496732026143791,
+          "f1": 0.8552631578947368,
+          "roc_auc": 0.9062649450023912,
+          "pr_auc": 0.9024335238514484,
+          "tn": 102,
+          "fp": 21,
+          "fn": 23,
+          "tp": 130
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.8461538461538461,
+            "f1": 0.7586206896551724,
+            "roc_auc": 0.8937728937728937,
+            "pr_auc": 0.7440519447872389,
+            "tn": 37,
+            "fp": 5,
+            "fn": 2,
+            "tp": 11
+          },
+          "Middle": {
+            "accuracy": 0.8423645320197044,
+            "recall": 0.8503937007874016,
+            "f1": 0.8709677419354839,
+            "roc_auc": 0.9052009946125156,
+            "pr_auc": 0.9403945662978626,
+            "tn": 63,
+            "fp": 13,
+            "fn": 19,
+            "tp": 108
+          },
+          "Elderly": {
+            "accuracy": 0.7222222222222222,
+            "recall": 0.8461538461538461,
+            "f1": 0.8148148148148148,
+            "roc_auc": 0.7384615384615385,
+            "pr_auc": 0.8779904735787087,
+            "tn": 2,
+            "fp": 3,
+            "fn": 2,
+            "tp": 11
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "xgboost",
+            "model_name": "XGBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "XGBoost Young Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "eval_metric": "logloss",
+              "learning_rate": 0.1,
+              "max_depth": 4,
+              "n_estimators": 120,
+              "n_jobs": 1,
+              "subsample": 1.0
+            }
+          },
+          "Middle": {
+            "model_key": "xgboost",
+            "model_name": "XGBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "XGBoost Middle Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "eval_metric": "logloss",
+              "learning_rate": 0.1,
+              "max_depth": 4,
+              "n_estimators": 120,
+              "n_jobs": 1,
+              "subsample": 1.0
+            }
+          },
+          "Elderly": {
+            "model_key": "xgboost",
+            "model_name": "XGBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "XGBoost Elderly Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "eval_metric": "logloss",
+              "learning_rate": 0.1,
+              "max_depth": 4,
+              "n_estimators": 120,
+              "n_jobs": 1,
+              "subsample": 1.0
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\xgboost\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\xgboost\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\xgboost\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\xgboost\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\xgboost\\feature_selection_comparison.png"
+      ]
+    },
+    "lightgbm": {
+      "model_key": "lightgbm",
+      "model_name": "LightGBM",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8623188405797102,
+          "recall": 0.8562091503267973,
+          "f1": 0.8733333333333333,
+          "roc_auc": 0.9280514373771188,
+          "pr_auc": 0.9418845121416641,
+          "tn": 107,
+          "fp": 16,
+          "fn": 22,
+          "tp": 131
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9272727272727272,
+            "recall": 0.9230769230769231,
+            "f1": 0.8571428571428571,
+            "roc_auc": 0.9487179487179487,
+            "pr_auc": 0.8325702075702075,
+            "tn": 39,
+            "fp": 3,
+            "fn": 1,
+            "tp": 12
+          },
+          "Middle": {
+            "accuracy": 0.8325123152709359,
+            "recall": 0.8346456692913385,
+            "f1": 0.8617886178861789,
+            "roc_auc": 0.9133858267716535,
+            "pr_auc": 0.9490097154712975,
+            "tn": 63,
+            "fp": 13,
+            "fn": 21,
+            "tp": 106
+          },
+          "Elderly": {
+            "accuracy": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 5,
+            "fp": 0,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "lightgbm",
+          "model_name": "LightGBM",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "LightGBM Baseline Holdout",
+          "params": {
+            "colsample_bytree": 1.0,
+            "learning_rate": 0.05,
+            "max_depth": -1,
+            "min_child_samples": 20,
+            "n_estimators": 200,
+            "n_jobs": 1,
+            "num_leaves": 31,
+            "subsample": 1.0,
+            "verbosity": -1
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8405797101449275,
+          "recall": 0.8300653594771242,
+          "f1": 0.8523489932885906,
+          "roc_auc": 0.9049365003453955,
+          "pr_auc": 0.90770589319543,
+          "tn": 105,
+          "fp": 18,
+          "fn": 26,
+          "tp": 127
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9090909090909091,
+            "recall": 0.8461538461538461,
+            "f1": 0.8148148148148148,
+            "roc_auc": 0.8864468864468865,
+            "pr_auc": 0.7083723968339353,
+            "tn": 39,
+            "fp": 3,
+            "fn": 2,
+            "tp": 11
+          },
+          "Middle": {
+            "accuracy": 0.8275862068965517,
+            "recall": 0.8267716535433071,
+            "f1": 0.8571428571428571,
+            "roc_auc": 0.9014711976792376,
+            "pr_auc": 0.937362657601095,
+            "tn": 63,
+            "fp": 13,
+            "fn": 22,
+            "tp": 105
+          },
+          "Elderly": {
+            "accuracy": 0.7777777777777778,
+            "recall": 0.8461538461538461,
+            "f1": 0.8461538461538461,
+            "roc_auc": 0.8461538461538461,
+            "pr_auc": 0.9340725513802437,
+            "tn": 3,
+            "fp": 2,
+            "fn": 2,
+            "tp": 11
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "lightgbm",
+            "model_name": "LightGBM",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "LightGBM Young Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "learning_rate": 0.05,
+              "max_depth": -1,
+              "min_child_samples": 20,
+              "n_estimators": 200,
+              "n_jobs": 1,
+              "num_leaves": 31,
+              "subsample": 1.0,
+              "verbosity": -1
+            }
+          },
+          "Middle": {
+            "model_key": "lightgbm",
+            "model_name": "LightGBM",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "LightGBM Middle Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "learning_rate": 0.05,
+              "max_depth": -1,
+              "min_child_samples": 20,
+              "n_estimators": 200,
+              "n_jobs": 1,
+              "num_leaves": 31,
+              "subsample": 1.0,
+              "verbosity": -1
+            }
+          },
+          "Elderly": {
+            "model_key": "lightgbm",
+            "model_name": "LightGBM",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "LightGBM Elderly Holdout",
+            "params": {
+              "colsample_bytree": 1.0,
+              "learning_rate": 0.05,
+              "max_depth": -1,
+              "min_child_samples": 20,
+              "n_estimators": 200,
+              "n_jobs": 1,
+              "num_leaves": 31,
+              "subsample": 1.0,
+              "verbosity": -1
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\lightgbm\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\lightgbm\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\lightgbm\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\lightgbm\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\lightgbm\\feature_selection_comparison.png"
+      ]
+    },
+    "svm": {
+      "model_key": "svm",
+      "model_name": "Support Vector Machine (SVM)",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.9094202898550725,
+          "recall": 0.9411764705882353,
+          "f1": 0.9201277955271565,
+          "roc_auc": 0.947553004941814,
+          "pr_auc": 0.9452546934432895,
+          "tn": 107,
+          "fp": 16,
+          "fn": 9,
+          "tp": 144
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9272727272727272,
+            "recall": 0.9230769230769231,
+            "f1": 0.8571428571428571,
+            "roc_auc": 0.945054945054945,
+            "pr_auc": 0.7836358086358086,
+            "tn": 39,
+            "fp": 3,
+            "fn": 1,
+            "tp": 12
+          },
+          "Middle": {
+            "accuracy": 0.9014778325123153,
+            "recall": 0.937007874015748,
+            "f1": 0.9224806201550387,
+            "roc_auc": 0.9442602569415666,
+            "pr_auc": 0.9614602214863207,
+            "tn": 64,
+            "fp": 12,
+            "fn": 8,
+            "tp": 119
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9692307692307693,
+            "pr_auc": 0.9885883347421809,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "svm",
+          "model_name": "Support Vector Machine (SVM)",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Support Vector Machine (SVM) Baseline Holdout",
+          "params": {
+            "C": 1.0,
+            "gamma": "scale",
+            "kernel": "rbf",
+            "probability": true
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.894927536231884,
+          "recall": 0.9084967320261438,
+          "f1": 0.9055374592833876,
+          "roc_auc": 0.9344279717306977,
+          "pr_auc": 0.9256812279746088,
+          "tn": 108,
+          "fp": 15,
+          "fn": 14,
+          "tp": 139
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.7692307692307693,
+            "f1": 0.7407407407407407,
+            "roc_auc": 0.9047619047619048,
+            "pr_auc": 0.7416527916527917,
+            "tn": 38,
+            "fp": 4,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.896551724137931,
+            "recall": 0.9133858267716536,
+            "f1": 0.9169960474308301,
+            "roc_auc": 0.9393907998342312,
+            "pr_auc": 0.9618186680639318,
+            "tn": 66,
+            "fp": 10,
+            "fn": 11,
+            "tp": 116
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9538461538461539,
+            "pr_auc": 0.9821780783319245,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "svm",
+            "model_name": "Support Vector Machine (SVM)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Support Vector Machine (SVM) Young Holdout",
+            "params": {
+              "C": 1.0,
+              "gamma": "scale",
+              "kernel": "rbf",
+              "probability": true
+            }
+          },
+          "Middle": {
+            "model_key": "svm",
+            "model_name": "Support Vector Machine (SVM)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Support Vector Machine (SVM) Middle Holdout",
+            "params": {
+              "C": 1.0,
+              "gamma": "scale",
+              "kernel": "rbf",
+              "probability": true
+            }
+          },
+          "Elderly": {
+            "model_key": "svm",
+            "model_name": "Support Vector Machine (SVM)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Support Vector Machine (SVM) Elderly Holdout",
+            "params": {
+              "C": 1.0,
+              "gamma": "scale",
+              "kernel": "rbf",
+              "probability": true
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\svm\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\svm\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\svm\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\svm\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\svm\\feature_selection_comparison.png"
+      ]
+    },
+    "mlp": {
+      "model_key": "mlp",
+      "model_name": "Artificial Neural Network (MLP)",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8369565217391305,
+          "recall": 0.9019607843137255,
+          "f1": 0.8598130841121495,
+          "roc_auc": 0.9177427068388329,
+          "pr_auc": 0.9380962845366329,
+          "tn": 93,
+          "fp": 30,
+          "fn": 15,
+          "tp": 138
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.7818181818181819,
+            "recall": 0.7692307692307693,
+            "f1": 0.625,
+            "roc_auc": 0.8498168498168498,
+            "pr_auc": 0.7030581647454712,
+            "tn": 33,
+            "fp": 9,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8423645320197044,
+            "recall": 0.905511811023622,
+            "f1": 0.8778625954198473,
+            "roc_auc": 0.9151471197679237,
+            "pr_auc": 0.9516086138738881,
+            "tn": 56,
+            "fp": 20,
+            "fn": 12,
+            "tp": 115
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "mlp",
+          "model_name": "Artificial Neural Network (MLP)",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Artificial Neural Network (MLP) Baseline Holdout",
+          "params": {
+            "alpha": 0.0001,
+            "early_stopping": true,
+            "hidden_layer_sizes": [
+              64,
+              32
+            ],
+            "learning_rate_init": 0.001,
+            "max_iter": 1200,
+            "n_iter_no_change": 30
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8478260869565217,
+          "recall": 0.8823529411764706,
+          "f1": 0.8653846153846154,
+          "roc_auc": 0.896965832403422,
+          "pr_auc": 0.9250524349434139,
+          "tn": 99,
+          "fp": 24,
+          "fn": 18,
+          "tp": 135
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.7818181818181819,
+            "recall": 0.7692307692307693,
+            "f1": 0.625,
+            "roc_auc": 0.8223443223443223,
+            "pr_auc": 0.7039652833098711,
+            "tn": 33,
+            "fp": 9,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8620689655172413,
+            "recall": 0.8818897637795275,
+            "f1": 0.8888888888888888,
+            "roc_auc": 0.9126605884790718,
+            "pr_auc": 0.9496019427375866,
+            "tn": 63,
+            "fp": 13,
+            "fn": 15,
+            "tp": 112
+          },
+          "Elderly": {
+            "accuracy": 0.8888888888888888,
+            "recall": 1.0,
+            "f1": 0.9285714285714286,
+            "roc_auc": 0.9230769230769231,
+            "pr_auc": 0.9723443223443222,
+            "tn": 3,
+            "fp": 2,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "mlp",
+            "model_name": "Artificial Neural Network (MLP)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Artificial Neural Network (MLP) Young Holdout",
+            "params": {
+              "alpha": 0.0001,
+              "early_stopping": true,
+              "hidden_layer_sizes": [
+                64,
+                32
+              ],
+              "learning_rate_init": 0.001,
+              "max_iter": 1200,
+              "n_iter_no_change": 30
+            }
+          },
+          "Middle": {
+            "model_key": "mlp",
+            "model_name": "Artificial Neural Network (MLP)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Artificial Neural Network (MLP) Middle Holdout",
+            "params": {
+              "alpha": 0.0001,
+              "early_stopping": true,
+              "hidden_layer_sizes": [
+                64,
+                32
+              ],
+              "learning_rate_init": 0.001,
+              "max_iter": 1200,
+              "n_iter_no_change": 30
+            }
+          },
+          "Elderly": {
+            "model_key": "mlp",
+            "model_name": "Artificial Neural Network (MLP)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Artificial Neural Network (MLP) Elderly Holdout",
+            "params": {
+              "alpha": 0.0001,
+              "early_stopping": true,
+              "hidden_layer_sizes": [
+                64,
+                32
+              ],
+              "learning_rate_init": 0.001,
+              "max_iter": 1200,
+              "n_iter_no_change": 30
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\mlp\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\mlp\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\mlp\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\mlp\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\mlp\\feature_selection_comparison.png"
+      ]
+    },
+    "knn": {
+      "model_key": "knn",
+      "model_name": "K-Nearest Neighbors (KNN)",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8876811594202898,
+          "recall": 0.8758169934640523,
+          "f1": 0.8963210702341137,
+          "roc_auc": 0.9330995270737021,
+          "pr_auc": 0.9268708777759194,
+          "tn": 111,
+          "fp": 12,
+          "fn": 19,
+          "tp": 134
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8909090909090909,
+            "recall": 0.7692307692307693,
+            "f1": 0.7692307692307693,
+            "roc_auc": 0.9532967032967034,
+            "pr_auc": 0.8148046398046398,
+            "tn": 39,
+            "fp": 3,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8817733990147784,
+            "recall": 0.8740157480314961,
+            "f1": 0.9024390243902439,
+            "roc_auc": 0.9213634479900539,
+            "pr_auc": 0.9333676607686059,
+            "tn": 68,
+            "fp": 8,
+            "fn": 16,
+            "tp": 111
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9846153846153846,
+            "pr_auc": 0.9945054945054945,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "knn",
+          "model_name": "K-Nearest Neighbors (KNN)",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "K-Nearest Neighbors (KNN) Baseline Holdout",
+          "params": {
+            "n_neighbors": 7,
+            "p": 2,
+            "weights": "distance"
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8623188405797102,
+          "recall": 0.8627450980392157,
+          "f1": 0.8741721854304636,
+          "roc_auc": 0.9232690366119349,
+          "pr_auc": 0.9345553740099235,
+          "tn": 106,
+          "fp": 17,
+          "fn": 21,
+          "tp": 132
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.7692307692307693,
+            "f1": 0.7407407407407407,
+            "roc_auc": 0.8827838827838828,
+            "pr_auc": 0.7541389166389167,
+            "tn": 38,
+            "fp": 4,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8620689655172413,
+            "recall": 0.8740157480314961,
+            "f1": 0.888,
+            "roc_auc": 0.9239535847492748,
+            "pr_auc": 0.9553485673980472,
+            "tn": 64,
+            "fp": 12,
+            "fn": 16,
+            "tp": 111
+          },
+          "Elderly": {
+            "accuracy": 0.8333333333333334,
+            "recall": 0.8461538461538461,
+            "f1": 0.88,
+            "roc_auc": 0.8461538461538461,
+            "pr_auc": 0.9353299478299477,
+            "tn": 4,
+            "fp": 1,
+            "fn": 2,
+            "tp": 11
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "knn",
+            "model_name": "K-Nearest Neighbors (KNN)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "K-Nearest Neighbors (KNN) Young Holdout",
+            "params": {
+              "n_neighbors": 7,
+              "p": 2,
+              "weights": "distance"
+            }
+          },
+          "Middle": {
+            "model_key": "knn",
+            "model_name": "K-Nearest Neighbors (KNN)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "K-Nearest Neighbors (KNN) Middle Holdout",
+            "params": {
+              "n_neighbors": 7,
+              "p": 2,
+              "weights": "distance"
+            }
+          },
+          "Elderly": {
+            "model_key": "knn",
+            "model_name": "K-Nearest Neighbors (KNN)",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "K-Nearest Neighbors (KNN) Elderly Holdout",
+            "params": {
+              "n_neighbors": 7,
+              "p": 2,
+              "weights": "distance"
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\knn\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\knn\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\knn\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\knn\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\knn\\feature_selection_comparison.png"
+      ]
+    },
+    "decision_tree": {
+      "model_key": "decision_tree",
+      "model_name": "Decision Tree",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8659420289855072,
+          "recall": 0.8562091503267973,
+          "f1": 0.8762541806020067,
+          "roc_auc": 0.8929804984324353,
+          "pr_auc": 0.8764824036877872,
+          "tn": 108,
+          "fp": 15,
+          "fn": 22,
+          "tp": 131
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.8461538461538461,
+            "f1": 0.7586206896551724,
+            "roc_auc": 0.8882783882783882,
+            "pr_auc": 0.6501681011296396,
+            "tn": 37,
+            "fp": 5,
+            "fn": 2,
+            "tp": 11
+          },
+          "Middle": {
+            "accuracy": 0.8571428571428571,
+            "recall": 0.84251968503937,
+            "f1": 0.8806584362139918,
+            "roc_auc": 0.8879506837961046,
+            "pr_auc": 0.9032031727136602,
+            "tn": 67,
+            "fp": 9,
+            "fn": 20,
+            "tp": 107
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9230769230769231,
+            "pr_auc": 0.9555444555444556,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "decision_tree",
+          "model_name": "Decision Tree",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Decision Tree Baseline Holdout",
+          "params": {
+            "max_depth": 5,
+            "min_samples_leaf": 1,
+            "min_samples_split": 2
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8333333333333334,
+          "recall": 0.8169934640522876,
+          "f1": 0.8445945945945946,
+          "roc_auc": 0.8586800573888091,
+          "pr_auc": 0.8269540546979495,
+          "tn": 105,
+          "fp": 18,
+          "fn": 28,
+          "tp": 125
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8181818181818182,
+            "recall": 0.6153846153846154,
+            "f1": 0.6153846153846154,
+            "roc_auc": 0.7847985347985348,
+            "pr_auc": 0.5121724429416737,
+            "tn": 37,
+            "fp": 5,
+            "fn": 5,
+            "tp": 8
+          },
+          "Middle": {
+            "accuracy": 0.8374384236453202,
+            "recall": 0.8267716535433071,
+            "f1": 0.8641975308641975,
+            "roc_auc": 0.8656237049316206,
+            "pr_auc": 0.8666646075217648,
+            "tn": 65,
+            "fp": 11,
+            "fn": 22,
+            "tp": 105
+          },
+          "Elderly": {
+            "accuracy": 0.8333333333333334,
+            "recall": 0.9230769230769231,
+            "f1": 0.8888888888888888,
+            "roc_auc": 0.7538461538461538,
+            "pr_auc": 0.8467643467643466,
+            "tn": 3,
+            "fp": 2,
+            "fn": 1,
+            "tp": 12
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "decision_tree",
+            "model_name": "Decision Tree",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Decision Tree Young Holdout",
+            "params": {
+              "max_depth": 5,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2
+            }
+          },
+          "Middle": {
+            "model_key": "decision_tree",
+            "model_name": "Decision Tree",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Decision Tree Middle Holdout",
+            "params": {
+              "max_depth": 5,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2
+            }
+          },
+          "Elderly": {
+            "model_key": "decision_tree",
+            "model_name": "Decision Tree",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Decision Tree Elderly Holdout",
+            "params": {
+              "max_depth": 5,
+              "min_samples_leaf": 1,
+              "min_samples_split": 2
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\decision_tree\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\decision_tree\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\decision_tree\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\decision_tree\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\decision_tree\\feature_selection_comparison.png"
+      ]
+    },
+    "naive_bayes": {
+      "model_key": "naive_bayes",
+      "model_name": "Naive Bayes",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8804347826086957,
+          "recall": 0.9019607843137255,
+          "f1": 0.8932038834951457,
+          "roc_auc": 0.9078590785907859,
+          "pr_auc": 0.866771080212659,
+          "tn": 105,
+          "fp": 18,
+          "fn": 15,
+          "tp": 138
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8909090909090909,
+            "recall": 0.6923076923076923,
+            "f1": 0.75,
+            "roc_auc": 0.9175824175824177,
+            "pr_auc": 0.7234501553327466,
+            "tn": 40,
+            "fp": 2,
+            "fn": 4,
+            "tp": 9
+          },
+          "Middle": {
+            "accuracy": 0.8719211822660099,
+            "recall": 0.9133858267716536,
+            "f1": 0.8992248062015504,
+            "roc_auc": 0.8839618731869042,
+            "pr_auc": 0.8675972766995528,
+            "tn": 61,
+            "fp": 15,
+            "fn": 11,
+            "tp": 116
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "naive_bayes",
+          "model_name": "Naive Bayes",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "Naive Bayes Baseline Holdout",
+          "params": {
+            "var_smoothing": 1e-09
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8514492753623188,
+          "recall": 0.8366013071895425,
+          "f1": 0.8619528619528619,
+          "roc_auc": 0.8837876614060258,
+          "pr_auc": 0.8240845839892377,
+          "tn": 107,
+          "fp": 16,
+          "fn": 25,
+          "tp": 128
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8727272727272727,
+            "recall": 0.6923076923076923,
+            "f1": 0.72,
+            "roc_auc": 0.8937728937728938,
+            "pr_auc": 0.6149239890544238,
+            "tn": 39,
+            "fp": 3,
+            "fn": 4,
+            "tp": 9
+          },
+          "Middle": {
+            "accuracy": 0.8374384236453202,
+            "recall": 0.8346456692913385,
+            "f1": 0.8653061224489796,
+            "roc_auc": 0.8738085370907583,
+            "pr_auc": 0.8537401829983906,
+            "tn": 64,
+            "fp": 12,
+            "fn": 21,
+            "tp": 106
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9538461538461539,
+            "pr_auc": 0.9821780783319245,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "naive_bayes",
+            "model_name": "Naive Bayes",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Naive Bayes Young Holdout",
+            "params": {
+              "var_smoothing": 1e-09
+            }
+          },
+          "Middle": {
+            "model_key": "naive_bayes",
+            "model_name": "Naive Bayes",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Naive Bayes Middle Holdout",
+            "params": {
+              "var_smoothing": 1e-09
+            }
+          },
+          "Elderly": {
+            "model_key": "naive_bayes",
+            "model_name": "Naive Bayes",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "Naive Bayes Elderly Holdout",
+            "params": {
+              "var_smoothing": 1e-09
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\naive_bayes\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\naive_bayes\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\naive_bayes\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\naive_bayes\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\naive_bayes\\feature_selection_comparison.png"
+      ]
+    },
+    "catboost": {
+      "model_key": "catboost",
+      "model_name": "CatBoost",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.8840579710144928,
+          "recall": 0.8888888888888888,
+          "f1": 0.8947368421052632,
+          "roc_auc": 0.9455337690631809,
+          "pr_auc": 0.9559004469701075,
+          "tn": 108,
+          "fp": 15,
+          "fn": 17,
+          "tp": 136
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9454545454545454,
+            "recall": 0.9230769230769231,
+            "f1": 0.8888888888888888,
+            "roc_auc": 0.9578754578754578,
+            "pr_auc": 0.8820578993655914,
+            "tn": 40,
+            "fp": 2,
+            "fn": 1,
+            "tp": 12
+          },
+          "Middle": {
+            "accuracy": 0.8620689655172413,
+            "recall": 0.8740157480314961,
+            "f1": 0.888,
+            "roc_auc": 0.9336924989639453,
+            "pr_auc": 0.961199693130274,
+            "tn": 64,
+            "fp": 12,
+            "fn": 16,
+            "tp": 111
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 1.0,
+            "pr_auc": 1.0,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "catboost",
+          "model_name": "CatBoost",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "CatBoost Baseline Holdout",
+          "params": {
+            "allow_writing_files": false,
+            "depth": 6,
+            "iterations": 200,
+            "l2_leaf_reg": 3.0,
+            "learning_rate": 0.05,
+            "loss_function": "Logloss",
+            "thread_count": 1,
+            "verbose": false
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8659420289855072,
+          "recall": 0.8758169934640523,
+          "f1": 0.8786885245901639,
+          "roc_auc": 0.9180083957702322,
+          "pr_auc": 0.9123442813117825,
+          "tn": 105,
+          "fp": 18,
+          "fn": 19,
+          "tp": 134
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8909090909090909,
+            "recall": 0.8461538461538461,
+            "f1": 0.7857142857142857,
+            "roc_auc": 0.9194139194139195,
+            "pr_auc": 0.73200084229496,
+            "tn": 38,
+            "fp": 4,
+            "fn": 2,
+            "tp": 11
+          },
+          "Middle": {
+            "accuracy": 0.8620689655172413,
+            "recall": 0.8740157480314961,
+            "f1": 0.888,
+            "roc_auc": 0.917426440116038,
+            "pr_auc": 0.949138572555713,
+            "tn": 64,
+            "fp": 12,
+            "fn": 16,
+            "tp": 111
+          },
+          "Elderly": {
+            "accuracy": 0.8333333333333334,
+            "recall": 0.9230769230769231,
+            "f1": 0.8888888888888888,
+            "roc_auc": 0.8,
+            "pr_auc": 0.8948784121861044,
+            "tn": 3,
+            "fp": 2,
+            "fn": 1,
+            "tp": 12
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "catboost",
+            "model_name": "CatBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "CatBoost Young Holdout",
+            "params": {
+              "allow_writing_files": false,
+              "depth": 6,
+              "iterations": 200,
+              "l2_leaf_reg": 3.0,
+              "learning_rate": 0.05,
+              "loss_function": "Logloss",
+              "thread_count": 1,
+              "verbose": false
+            }
+          },
+          "Middle": {
+            "model_key": "catboost",
+            "model_name": "CatBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "CatBoost Middle Holdout",
+            "params": {
+              "allow_writing_files": false,
+              "depth": 6,
+              "iterations": 200,
+              "l2_leaf_reg": 3.0,
+              "learning_rate": 0.05,
+              "loss_function": "Logloss",
+              "thread_count": 1,
+              "verbose": false
+            }
+          },
+          "Elderly": {
+            "model_key": "catboost",
+            "model_name": "CatBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "CatBoost Elderly Holdout",
+            "params": {
+              "allow_writing_files": false,
+              "depth": 6,
+              "iterations": 200,
+              "l2_leaf_reg": 3.0,
+              "learning_rate": 0.05,
+              "loss_function": "Logloss",
+              "thread_count": 1,
+              "verbose": false
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\catboost\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\catboost\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\catboost\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\catboost\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\catboost\\feature_selection_comparison.png"
+      ]
+    },
+    "adaboost": {
+      "model_key": "adaboost",
+      "model_name": "AdaBoost",
+      "baseline": {
+        "overall": {
+          "accuracy": 0.894927536231884,
+          "recall": 0.8888888888888888,
+          "f1": 0.9036544850498339,
+          "roc_auc": 0.9426111908177905,
+          "pr_auc": 0.9514053404354879,
+          "tn": 111,
+          "fp": 12,
+          "fn": 17,
+          "tp": 136
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.9090909090909091,
+            "recall": 0.7692307692307693,
+            "f1": 0.8,
+            "roc_auc": 0.9597069597069597,
+            "pr_auc": 0.8621461871461871,
+            "tn": 40,
+            "fp": 2,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8866995073891626,
+            "recall": 0.889763779527559,
+            "f1": 0.9076305220883534,
+            "roc_auc": 0.9321384169084128,
+            "pr_auc": 0.9572497077032787,
+            "tn": 67,
+            "fp": 9,
+            "fn": 14,
+            "tp": 113
+          },
+          "Elderly": {
+            "accuracy": 0.9444444444444444,
+            "recall": 1.0,
+            "f1": 0.9629629629629629,
+            "roc_auc": 0.9538461538461539,
+            "pr_auc": 0.9821780783319245,
+            "tn": 4,
+            "fp": 1,
+            "fn": 0,
+            "tp": 13
+          }
+        },
+        "sampling": {
+          "applied": true,
+          "minority_label": 0,
+          "before_counts": {
+            "0": 287,
+            "1": 354
+          },
+          "after_counts": {
+            "0": 354,
+            "1": 354
+          },
+          "generated_samples": 67,
+          "k_neighbors_used": 5
+        },
+        "feature_selection": {
+          "applied": true,
+          "reason": "top_k_selected",
+          "method": "xgboost_feature_importance_top_k",
+          "requested_top_k": 10,
+          "selected_features": [
+            "st_slope_2",
+            "chest_pain_type_4",
+            "exercise_angina",
+            "sex",
+            "fasting_blood_sugar",
+            "oldpeak",
+            "st_slope_3",
+            "resting_ecg_2",
+            "cholesterol",
+            "resting_bp_s"
+          ],
+          "selected_feature_importances": {
+            "st_slope_2": 0.3406805396080017,
+            "chest_pain_type_4": 0.18167468905448914,
+            "exercise_angina": 0.10523361712694168,
+            "sex": 0.05226451903581619,
+            "fasting_blood_sugar": 0.048734549432992935,
+            "oldpeak": 0.04426877573132515,
+            "st_slope_3": 0.04225542023777962,
+            "resting_ecg_2": 0.03675050288438797,
+            "cholesterol": 0.03338426724076271,
+            "resting_bp_s": 0.024625154212117195
+          }
+        },
+        "model_info": {
+          "model_key": "adaboost",
+          "model_name": "AdaBoost",
+          "method": "default_model_params",
+          "status": "applied",
+          "reason": "fixed_default_model",
+          "label": "AdaBoost Baseline Holdout",
+          "params": {
+            "learning_rate": 0.5,
+            "n_estimators": 150
+          }
+        }
+      },
+      "age_specialist": {
+        "overall": {
+          "accuracy": 0.8623188405797102,
+          "recall": 0.8758169934640523,
+          "f1": 0.8758169934640523,
+          "roc_auc": 0.9188054625644295,
+          "pr_auc": 0.9191761480411436,
+          "tn": 104,
+          "fp": 19,
+          "fn": 19,
+          "tp": 134
+        },
+        "group_metrics": {
+          "Young": {
+            "accuracy": 0.8545454545454545,
+            "recall": 0.7692307692307693,
+            "f1": 0.7142857142857143,
+            "roc_auc": 0.8827838827838828,
+            "pr_auc": 0.7311202911302237,
+            "tn": 37,
+            "fp": 5,
+            "fn": 3,
+            "tp": 10
+          },
+          "Middle": {
+            "accuracy": 0.8719211822660099,
+            "recall": 0.889763779527559,
+            "f1": 0.8968253968253969,
+            "roc_auc": 0.9263365105677581,
+            "pr_auc": 0.9445155352925381,
+            "tn": 64,
+            "fp": 12,
+            "fn": 14,
+            "tp": 113
+          },
+          "Elderly": {
+            "accuracy": 0.7777777777777778,
+            "recall": 0.8461538461538461,
+            "f1": 0.8461538461538461,
+            "roc_auc": 0.8461538461538461,
+            "pr_auc": 0.9462566091525366,
+            "tn": 3,
+            "fp": 2,
+            "fn": 2,
+            "tp": 11
+          }
+        },
+        "sampling_by_group": {
+          "Young": {
+            "applied": true,
+            "minority_label": 1,
+            "before_counts": {
+              "0": 78,
+              "1": 45
+            },
+            "after_counts": {
+              "0": 78,
+              "1": 78
+            },
+            "generated_samples": 33,
+            "k_neighbors_used": 5
+          },
+          "Middle": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 189,
+              "1": 266
+            },
+            "after_counts": {
+              "0": 266,
+              "1": 266
+            },
+            "generated_samples": 77,
+            "k_neighbors_used": 5
+          },
+          "Elderly": {
+            "applied": true,
+            "minority_label": 0,
+            "before_counts": {
+              "0": 20,
+              "1": 43
+            },
+            "after_counts": {
+              "0": 43,
+              "1": 43
+            },
+            "generated_samples": 23,
+            "k_neighbors_used": 5
+          }
+        },
+        "feature_selection_by_group": {
+          "Young": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "fasting_blood_sugar",
+              "resting_ecg_2",
+              "st_slope_2",
+              "exercise_angina",
+              "chest_pain_type_3",
+              "max_heart_rate",
+              "resting_bp_s",
+              "oldpeak",
+              "cholesterol"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.32160571217536926,
+              "fasting_blood_sugar": 0.18019676208496094,
+              "resting_ecg_2": 0.09375239163637161,
+              "st_slope_2": 0.08606214821338654,
+              "exercise_angina": 0.07796915620565414,
+              "chest_pain_type_3": 0.05964944139122963,
+              "max_heart_rate": 0.046882905066013336,
+              "resting_bp_s": 0.041680946946144104,
+              "oldpeak": 0.03832591325044632,
+              "cholesterol": 0.02451958879828453
+            }
+          },
+          "Middle": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "st_slope_2",
+              "chest_pain_type_4",
+              "exercise_angina",
+              "st_slope_3",
+              "oldpeak",
+              "sex",
+              "fasting_blood_sugar",
+              "chest_pain_type_3",
+              "cholesterol",
+              "max_heart_rate"
+            ],
+            "selected_feature_importances": {
+              "st_slope_2": 0.3038567900657654,
+              "chest_pain_type_4": 0.17511112987995148,
+              "exercise_angina": 0.08001801371574402,
+              "st_slope_3": 0.0790509283542633,
+              "oldpeak": 0.058196425437927246,
+              "sex": 0.051766287535429,
+              "fasting_blood_sugar": 0.05080873519182205,
+              "chest_pain_type_3": 0.029954848811030388,
+              "cholesterol": 0.029034387320280075,
+              "max_heart_rate": 0.028898974880576134
+            }
+          },
+          "Elderly": {
+            "applied": true,
+            "reason": "top_k_selected",
+            "method": "xgboost_feature_importance_top_k",
+            "requested_top_k": 10,
+            "selected_features": [
+              "chest_pain_type_4",
+              "exercise_angina",
+              "fasting_blood_sugar",
+              "sex",
+              "resting_ecg_1",
+              "resting_bp_s",
+              "chest_pain_type_3",
+              "oldpeak",
+              "max_heart_rate",
+              "age"
+            ],
+            "selected_feature_importances": {
+              "chest_pain_type_4": 0.3082725703716278,
+              "exercise_angina": 0.09748592227697372,
+              "fasting_blood_sugar": 0.0732879489660263,
+              "sex": 0.07237140089273453,
+              "resting_ecg_1": 0.07148103415966034,
+              "resting_bp_s": 0.06738176196813583,
+              "chest_pain_type_3": 0.06141458824276924,
+              "oldpeak": 0.05569075420498848,
+              "max_heart_rate": 0.052727144211530685,
+              "age": 0.052019763737916946
+            }
+          }
+        },
+        "model_info_by_group": {
+          "Young": {
+            "model_key": "adaboost",
+            "model_name": "AdaBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "AdaBoost Young Holdout",
+            "params": {
+              "learning_rate": 0.5,
+              "n_estimators": 150
+            }
+          },
+          "Middle": {
+            "model_key": "adaboost",
+            "model_name": "AdaBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "AdaBoost Middle Holdout",
+            "params": {
+              "learning_rate": 0.5,
+              "n_estimators": 150
+            }
+          },
+          "Elderly": {
+            "model_key": "adaboost",
+            "model_name": "AdaBoost",
+            "method": "default_model_params",
+            "status": "applied",
+            "reason": "fixed_default_model",
+            "label": "AdaBoost Elderly Holdout",
+            "params": {
+              "learning_rate": 0.5,
+              "n_estimators": 150
+            }
+          }
+        }
+      },
+      "visualizations": [
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\adaboost\\overall_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\adaboost\\per_cohort_metrics_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\adaboost\\confusion_matrix_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\adaboost\\sampling_comparison.png",
+        "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\adaboost\\feature_selection_comparison.png"
+      ]
+    }
+  },
+  "cross_model_visualizations": [
+    "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\_summary\\cross_model_overall_metrics.png",
+    "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\_summary\\cross_model_metric_delta_heatmap.png",
+    "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\_summary\\all_classifiers_comparison.png"
+  ],
+  "cross_model_summary_csv": "C:\\Users\\Admin\\Desktop\\mern\\DM_Project\\visualizations\\performance\\cross_model_summary.csv"
+}

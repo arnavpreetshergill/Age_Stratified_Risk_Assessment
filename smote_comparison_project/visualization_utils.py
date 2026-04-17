@@ -31,6 +31,8 @@ PALETTE = {
     "Without SMOTE": "#3A5A78",
     "With SMOTE": "#D97A4A",
 }
+HEADER_RECT = (0.03, 0.03, 0.97, 0.88)
+HEADER_RECT_WITH_LEGEND = (0.03, 0.03, 0.97, 0.84)
 
 
 def _safe_float(value: Any) -> float:
@@ -45,6 +47,44 @@ def _count_value(counts: Dict[Any, Any], label: int) -> int:
 
 def _style() -> None:
     sns.set_theme(style="whitegrid")
+
+
+def _finalize_figure(fig, output_path: Path, rect: tuple[float, float, float, float] | None = None) -> Path:
+    if rect is None:
+        fig.tight_layout(pad=1.2)
+    else:
+        fig.tight_layout(rect=rect, pad=1.2)
+    fig.savefig(output_path, dpi=200, bbox_inches="tight", pad_inches=0.25)
+    plt.close(fig)
+    return output_path
+
+
+def _apply_shared_header(
+    fig,
+    title: str,
+    handles=None,
+    labels=None,
+    *,
+    title_y: float = 0.99,
+    legend_y: float = 0.955,
+    legend_cols: int = 2,
+    title_size: int = 14,
+) -> tuple[float, float, float, float]:
+    fig.suptitle(title, y=title_y, fontsize=title_size)
+    if handles and labels:
+        fig.legend(
+            handles,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, legend_y),
+            ncol=legend_cols,
+            frameon=False,
+            fontsize=10,
+            handlelength=1.5,
+            columnspacing=1.2,
+        )
+        return HEADER_RECT_WITH_LEGEND
+    return HEADER_RECT
 
 
 def plot_overall_metrics(
@@ -75,10 +115,7 @@ def plot_overall_metrics(
     ax.set_xticklabels(metric_labels, rotation=20, ha="right")
     ax.set_ylim(0, 1.05)
     ax.legend()
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    return _finalize_figure(fig, output_path)
 
 
 def plot_cohort_metrics(
@@ -124,12 +161,13 @@ def plot_cohort_metrics(
 
     axes[len(COHORT_METRICS)].axis("off")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-    fig.suptitle("Holdout Test Per-Cohort Metric Comparison", y=0.98, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(
+        fig,
+        "Holdout Test Per-Cohort Metrics",
+        handles,
+        labels,
+    )
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_confusion_matrices(
@@ -179,11 +217,8 @@ def plot_confusion_matrices(
         ax=axes[1],
     )
     axes[1].set_title("With SMOTE")
-    fig.suptitle("Holdout Test Overall Confusion Matrix Comparison", y=1.02, fontsize=14)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, "Holdout Test Confusion Matrices")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_sampling_summary(
@@ -249,11 +284,8 @@ def plot_sampling_summary(
     axes[1].set_ylabel("Generated rows")
     axes[1].legend()
 
-    fig.suptitle("Holdout Test Sampling Comparison", y=1.02, fontsize=14)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, "Holdout Test Sampling Comparison")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_feature_selection(
@@ -288,11 +320,8 @@ def plot_feature_selection(
             ax.set_title(f"{cohort} - {title}")
             ax.set_xlabel("Importance")
 
-    fig.suptitle("Selected Feature Importance by Cohort", y=0.995, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.98])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, "Selected Feature Importance by Cohort")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def save_visualizations(

@@ -191,19 +191,19 @@ def print_model_summary(model_result: Dict[str, Any]) -> None:
             f"{fmt(specialist_group_metrics[group]['accuracy']):<14}"
         )
 
-    print("\nHYPERPARAMETER TUNING")
+    print("\nMODEL CONFIGURATION")
     print("-" * 88)
     print(
         f"Baseline params: {baseline_model_info['params']} | "
         f"status: {baseline_model_info['status']} | "
-        f"cv_best: {fmt(baseline_model_info['best_score'])}"
+        f"reason: {baseline_model_info['reason']}"
     )
     for group in AGE_GROUPS:
         model_info = specialist_model_summary[group]
         print(
             f"{group:<10} params: {model_info.get('params')} | "
             f"status: {model_info.get('status')} | "
-            f"cv_best: {fmt(model_info.get('best_score'))}"
+            f"reason: {model_info.get('reason')}"
         )
 
     print("\nFEATURE SELECTION + SMOTE SUMMARY")
@@ -243,7 +243,6 @@ def run_model_comparison(
         top_k=FEATURE_SELECTION_TOP_K,
         use_smote=True,
         random_state=RANDOM_STATE,
-        tune_hyperparameters=True,
     )
     baseline_overall = compute_metrics(y_test_raw, baseline_result["pred"], baseline_result["prob"])
 
@@ -308,7 +307,6 @@ def run_model_comparison(
             top_k=FEATURE_SELECTION_TOP_K,
             use_smote=True,
             random_state=RANDOM_STATE,
-            tune_hyperparameters=True,
         )
         specialist_pred.loc[test_group_df.index] = group_result["pred"]
         specialist_prob.loc[test_group_df.index] = group_result["prob"]
@@ -360,7 +358,7 @@ def compare_strategies():
     print("EVALUATION MODE: SINGLE FIXED TRAIN/TEST SPLIT")
     print("CLASSIFIERS: Logistic Regression, Random Forest, XGBoost, LightGBM, SVM, MLP, KNN,")
     print("             Decision Tree, Naive Bayes, CatBoost, AdaBoost")
-    print("TUNING: RandomizedSearchCV on the training partition for every supported classifier")
+    print("MODEL SELECTION: fixed default parameters on the training partition for every supported classifier")
     print("=" * 88)
 
     if not os.path.exists(RAW_FILE):
@@ -418,8 +416,6 @@ def compare_strategies():
                 specialist_sampling=model_result["age_specialist"]["sampling_by_group"],
                 baseline_feature_info=model_result["baseline"]["feature_selection"],
                 specialist_feature_selection=model_result["age_specialist"]["feature_selection_by_group"],
-                baseline_model_info=model_result["baseline"]["model_info"],
-                specialist_model_summary=model_result["age_specialist"]["model_info_by_group"],
             )
         ]
         comparison_results[model_key] = model_result
@@ -448,7 +444,7 @@ def compare_strategies():
             "feature_selection_top_k": FEATURE_SELECTION_TOP_K,
             "smote_mode": "train_only",
             "holdout_random_state": RANDOM_STATE,
-            "tuning_enabled": True,
+            "model_selection": "fixed_default_params",
             "available_models": available_models,
             "unavailable_models": unavailable_models,
         },

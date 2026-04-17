@@ -31,6 +31,8 @@ PALETTE = {
     "Baseline": "#355C7D",
     "Age-Specialist": "#C06C4E",
 }
+HEADER_RECT = (0.03, 0.03, 0.97, 0.88)
+HEADER_RECT_WITH_LEGEND = (0.03, 0.03, 0.97, 0.84)
 
 
 def _safe_float(value: Any) -> float:
@@ -45,6 +47,44 @@ def _count_value(counts: Dict[Any, Any], label: int) -> int:
 
 def _style() -> None:
     sns.set_theme(style="whitegrid")
+
+
+def _finalize_figure(fig, output_path: Path, rect: tuple[float, float, float, float] | None = None) -> Path:
+    if rect is None:
+        fig.tight_layout(pad=1.2)
+    else:
+        fig.tight_layout(rect=rect, pad=1.2)
+    fig.savefig(output_path, dpi=200, bbox_inches="tight", pad_inches=0.25)
+    plt.close(fig)
+    return output_path
+
+
+def _apply_shared_header(
+    fig,
+    title: str,
+    handles=None,
+    labels=None,
+    *,
+    title_y: float = 0.99,
+    legend_y: float = 0.955,
+    legend_cols: int = 2,
+    title_size: int = 14,
+) -> tuple[float, float, float, float]:
+    fig.suptitle(title, y=title_y, fontsize=title_size)
+    if handles and labels:
+        fig.legend(
+            handles,
+            labels,
+            loc="upper center",
+            bbox_to_anchor=(0.5, legend_y),
+            ncol=legend_cols,
+            frameon=False,
+            fontsize=10,
+            handlelength=1.5,
+            columnspacing=1.2,
+        )
+        return HEADER_RECT_WITH_LEGEND
+    return HEADER_RECT
 
 
 def _sum_class_counts(sampling_map: Dict[str, Dict[str, Any]], key: str) -> Dict[int, int]:
@@ -90,10 +130,7 @@ def plot_overall_metrics(
     ax.set_xticklabels(metric_labels, rotation=20, ha="right")
     ax.set_ylim(0, 1.05)
     ax.legend()
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    return _finalize_figure(fig, output_path)
 
 
 def plot_per_cohort_metrics(
@@ -127,12 +164,13 @@ def plot_per_cohort_metrics(
 
     axes[len(COHORT_METRICS)].axis("off")
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-    fig.suptitle(f"{model_label}: Per-Cohort Holdout Metrics", y=0.98, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(
+        fig,
+        f"{model_label}: Per-Cohort Holdout Metrics",
+        handles,
+        labels,
+    )
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_confusion_matrices(
@@ -183,11 +221,8 @@ def plot_confusion_matrices(
         ax=axes[1],
     )
     axes[1].set_title("Age-Specialist")
-    fig.suptitle(f"{model_label}: Holdout Confusion Matrix Comparison", y=1.02, fontsize=14)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, f"{model_label}: Holdout Confusion Matrices")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_sampling_summary(
@@ -242,11 +277,8 @@ def plot_sampling_summary(
     axes[1].set_ylabel("Generated rows")
     axes[1].tick_params(axis="x", rotation=20)
 
-    fig.suptitle(f"{model_label}: Train-Only SMOTE Summary", y=1.02, fontsize=14)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, f"{model_label}: Train-Only SMOTE Summary")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_feature_selection(
@@ -280,49 +312,8 @@ def plot_feature_selection(
         ax.set_title(title)
         ax.set_xlabel("Importance")
 
-    fig.suptitle(f"{model_label}: Selected Feature Importance", y=0.995, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.98])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
-
-
-def plot_tuning_summary(
-    output_path: Path,
-    baseline_model_info: Dict[str, Any],
-    specialist_model_summary: Dict[str, Dict[str, Any]],
-    model_label: str,
-) -> Path:
-    _style()
-    entries = [("Baseline", baseline_model_info)] + [
-        (cohort, specialist_model_summary.get(cohort, {}))
-        for cohort in AGE_GROUPS
-    ]
-    scores = [_safe_float(info.get("best_score")) for _, info in entries]
-    iterations = [float(info.get("search_iterations", 0)) for _, info in entries]
-    statuses = [str(info.get("status", "unknown")) for _, info in entries]
-    colors = [PALETTE["Baseline"]] + [PALETTE["Age-Specialist"]] * len(AGE_GROUPS)
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
-    axes[0].bar([label for label, _ in entries], scores, color=colors)
-    axes[0].set_title("Best CV ROC-AUC During Tuning")
-    axes[0].set_ylabel("CV ROC-AUC")
-    axes[0].set_ylim(0, 1.05)
-    axes[0].tick_params(axis="x", rotation=20)
-
-    axes[1].bar([label for label, _ in entries], iterations, color=colors)
-    axes[1].set_title("Hyperparameter Search Iterations")
-    axes[1].set_ylabel("Iterations")
-    axes[1].tick_params(axis="x", rotation=20)
-
-    for index, status in enumerate(statuses):
-        axes[1].text(index, iterations[index] + 0.1, status, ha="center", va="bottom", rotation=20, fontsize=8)
-
-    fig.suptitle(f"{model_label}: Hyperparameter Tuning Summary", y=1.02, fontsize=14)
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(fig, f"{model_label}: Selected Feature Importance")
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def save_model_visualizations(
@@ -336,8 +327,6 @@ def save_model_visualizations(
     specialist_sampling: Dict[str, Dict[str, Any]],
     baseline_feature_info: Dict[str, Any],
     specialist_feature_selection: Dict[str, Dict[str, Any] | None],
-    baseline_model_info: Dict[str, Any],
-    specialist_model_summary: Dict[str, Dict[str, Any]],
 ) -> List[Path]:
     output_dir = _model_dir(model_key)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -371,12 +360,6 @@ def save_model_visualizations(
             output_dir / "feature_selection_comparison.png",
             baseline_feature_info,
             specialist_feature_selection,
-            model_label,
-        ),
-        plot_tuning_summary(
-            output_dir / "hyperparameter_tuning_summary.png",
-            baseline_model_info,
-            specialist_model_summary,
             model_label,
         ),
     ]
@@ -417,12 +400,13 @@ def plot_cross_model_overall_metrics(
         ax.set_ylim(0, 1.05)
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-    fig.suptitle("Cross-Model Holdout Performance Summary", y=0.98, fontsize=14)
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(
+        fig,
+        "Cross-Model Holdout Summary",
+        handles,
+        labels,
+    )
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def plot_cross_model_metric_delta(
@@ -455,10 +439,7 @@ def plot_cross_model_metric_delta(
         ax=ax,
     )
     ax.set_title("Age-Specialist Minus Baseline Holdout Metric Delta")
-    fig.tight_layout()
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    return _finalize_figure(fig, output_path)
 
 
 def plot_all_classifiers_comparison(
@@ -482,7 +463,7 @@ def plot_all_classifiers_comparison(
         ("f1", "F1"),
     ]
 
-    fig, axes = plt.subplots(1, len(metric_specs), figsize=(22, 0.65 * max(6, len(model_labels)) + 2), sharey=True)
+    fig, axes = plt.subplots(1, len(metric_specs), figsize=(22, 0.75 * max(6, len(model_labels)) + 2.5), sharey=True)
     if len(metric_specs) == 1:
         axes = [axes]
 
@@ -514,12 +495,14 @@ def plot_all_classifiers_comparison(
         ax.invert_yaxis()
 
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=2, frameon=False)
-    fig.suptitle("All Classifiers Comparison Across Key Holdout Metrics", y=0.99, fontsize=15)
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
-    fig.savefig(output_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return output_path
+    rect = _apply_shared_header(
+        fig,
+        "All Classifiers: Key Holdout Metrics",
+        handles,
+        labels,
+        title_size=15,
+    )
+    return _finalize_figure(fig, output_path, rect=rect)
 
 
 def save_cross_model_visualizations(model_results: Dict[str, Dict[str, Any]]) -> List[Path]:
